@@ -1,6 +1,7 @@
 import React from 'react'
 import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom'
 import { Home } from './components/home/Home'
+import { Test } from './components/test/Text'
 
 export default function App() {
   return (
@@ -11,23 +12,17 @@ export default function App() {
             <li>
               <Link to="/">Home</Link>
             </li>
-            {/* <li>
-              <Link to="/about">About</Link>
-            </li>
             <li>
-              <Link to="/users">Users</Link>
-            </li> */}
+              <Link to="/test">Test</Link>
+            </li>
           </ul>
         </nav>
       </header>
       <div>
         <Switch>
-          {/* <Route path="/about">
-            <About />
+          <Route path="/test">
+            <Test />
           </Route>
-          <Route path="/users">
-            <Users />
-          </Route> */}
           <Route path="/">
             <Home />
           </Route>
