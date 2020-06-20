@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom'
 import { Home } from './components/home/Home'
 import { Test } from './components/test/Text'
 import { Move } from './components/move/Move'
+import { Rooms } from './components/rooms/Rooms'
 
 export default function App() {
   return (
@@ -19,6 +20,9 @@ export default function App() {
             <li>
               <Link to="/move">Move</Link>
             </li>
+            <li>
+              <Link to="/rooms">Rooms</Link>
+            </li>
           </ul>
         </nav>
       </header>
@@ -29,6 +33,9 @@ export default function App() {
           </Route>
           <Route path="/move">
             <Move />
+          </Route>
+          <Route path="/rooms">
+            <Rooms />
           </Route>
           <Route path="/">
             <Home />
