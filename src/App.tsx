@@ -4,6 +4,8 @@ import { Home } from './components/home/Home'
 import { Test } from './components/test/Text'
 import { Move } from './components/move/Move'
 import { Rooms } from './components/rooms/Rooms'
+import { MoveInTheRoom } from './components/moveInTheRoom/MoveInTheRoom'
+import { Shoot } from './components/shoot/Shoot'
 
 export default function App() {
   return (
@@ -23,6 +25,12 @@ export default function App() {
             <li>
               <Link to="/rooms">Rooms</Link>
             </li>
+            <li>
+              <Link to="/move-in-the-room">Move in the room</Link>
+            </li>
+            <li>
+              <Link to="/shoot">Shoot</Link>
+            </li>
           </ul>
         </nav>
       </header>
@@ -36,6 +44,12 @@ export default function App() {
           </Route>
           <Route path="/rooms">
             <Rooms />
+          </Route>
+          <Route path="/move-in-the-room">
+            <MoveInTheRoom />
+          </Route>
+          <Route path="/shoot">
+            <Shoot />
           </Route>
           <Route path="/">
             <Home />

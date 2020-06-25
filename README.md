@@ -1,3 +1,8 @@
+# Info
+
+https://github.com/davidfig/pixi-intersects
+https://davidfig.github.io/intersects/
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
