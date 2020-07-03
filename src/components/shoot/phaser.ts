@@ -3,6 +3,8 @@ import { getRoom, IRoom, IPoint } from '../../utils/roomGenerator'
 import bunnyImg from '../../assets/bunny.png'
 import wallImg from '../../assets/wall50.png'
 import doorsTileset from '../../assets/doorsTileset.png'
+import life from '../../assets/life.png'
+import { getRandom } from '../../utils/random'
 
 // TODO: lives:
 // scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
@@ -13,7 +15,7 @@ const isSamePoints = (p1: IPoint, p2: IPoint) => {
 
 const tileSize = 120
 const createWall = (container: any, x: number, y: number) => {
-  container.create(x, y, 'wall').setOrigin(0, 0).setDisplaySize(tileSize, tileSize).refreshBody()
+  container.create(x, y, 'wall').setDisplaySize(tileSize, tileSize).refreshBody()
 }
 
 const addRoom = (physics: any, room: IRoom) => {
@@ -45,7 +47,7 @@ const addRoom = (physics: any, room: IRoom) => {
 }
 
 const addExit = (physics: Phaser.Physics.Arcade.ArcadePhysics, x: number, y: number) => {
-  return physics.add.staticSprite(x, y, 'door').setDisplaySize(tileSize, tileSize).setOrigin(0).refreshBody()
+  return physics.add.staticSprite(x, y, 'door').setDisplaySize(tileSize, tileSize).refreshBody()
 }
 
 // Ensures sprite speed doesnt exceed maxVelocity while update is called
@@ -127,10 +129,23 @@ class Bullet extends Phaser.GameObjects.Image {
   }
 }
 
+const createEnemy = (physics: Phaser.Physics.Arcade.ArcadePhysics, room: IRoom) => {
+  const enemy = physics.add.sprite(
+    getRandom(room.width - 1, 1) * tileSize,
+    getRandom(room.height - 1, 1) * tileSize,
+    'player_handgun'
+  )
+  enemy.setDisplaySize(tileSize, tileSize).setCollideWorldBounds(true)
+  enemy.setData('lastFired', 0)
+  // enemy.data.set('lastFired', 0)
+  return enemy
+}
+
 class RoomScene extends Phaser.Scene {
   enemyBullets!: Phaser.Physics.Arcade.Group
   player!: Phaser.Physics.Arcade.Sprite
-  enemy!: Phaser.Physics.Arcade.Sprite
+  // enemy!: Phaser.Physics.Arcade.Sprite
+  enemies!: Phaser.Physics.Arcade.Sprite[]
   exit!: Phaser.Physics.Arcade.Sprite
   reticle!: Phaser.Physics.Arcade.Sprite
   hp1!: Phaser.GameObjects.Image
@@ -138,8 +153,8 @@ class RoomScene extends Phaser.Scene {
   hp3!: Phaser.GameObjects.Image
   playerHealth!: number
   enemyHealth!: number
-  enemyLastFired!: number
   canMoveNext = false
+  level = 1
 
   constructor() {
     super('room')
@@ -147,11 +162,12 @@ class RoomScene extends Phaser.Scene {
   preload() {
     // Load in images and sprites
     this.load.image('bullet', 'assets/sprites/bullets/bullet6.png')
-    this.load.image('target', 'assets/demoscene/ball.png')
+    // this.load.image('life', life)
     this.load.spritesheet('door', doorsTileset, { frameWidth: 72, frameHeight: 96 })
     // this.load.image('background', 'assets/skies/underwater1.png')
     this.textures.addBase64('player_handgun', bunnyImg)
     this.textures.addBase64('wall', wallImg)
+    this.textures.addBase64('life', life)
   }
   create() {
     const roomData = getRoom({
@@ -161,7 +177,12 @@ class RoomScene extends Phaser.Scene {
       maxHeight: 25,
     })
     // Set world bounds
-    this.physics.world.setBounds(0, 0, roomData.width * tileSize, roomData.height * tileSize)
+    this.physics.world.setBounds(
+      -(tileSize / 2),
+      -(tileSize / 2),
+      roomData.width * tileSize,
+      roomData.height * tileSize
+    )
     const walls = addRoom(this.physics, roomData)
     // this.scene.add
 
@@ -171,34 +192,32 @@ class RoomScene extends Phaser.Scene {
 
     this.exit = addExit(this.physics, roomData.exit.x * tileSize, roomData.exit.y * tileSize)
 
-    this.player = this.physics.add.sprite(
-      roomData.enter.x * tileSize + tileSize / 2,
-      roomData.enter.y * tileSize + tileSize / 2,
-      'player_handgun'
-    )
-    this.enemy = this.physics.add.sprite(300, 600, 'player_handgun')
-    this.reticle = this.physics.add.sprite(800, 700, 'target')
-    this.hp1 = this.add.image(-350, -250, 'target').setScrollFactor(0.5, 0.5)
-    this.hp2 = this.add.image(-300, -250, 'target').setScrollFactor(0.5, 0.5)
-    this.hp3 = this.add.image(-250, -250, 'target').setScrollFactor(0.5, 0.5)
+    this.player = this.physics.add.sprite(roomData.enter.x * tileSize, roomData.enter.y * tileSize, 'player_handgun')
+
+    // TODO: no enemy overlap
+    this.enemies = []
+    for (let i = 0; i < this.level; i++) {
+      this.enemies.push(createEnemy(this.physics, roomData))
+    }
+    this.reticle = this.physics.add.sprite(800, 700, 'life')
+    this.hp1 = this.add.image(-350, -250, 'life').setScrollFactor(0, 0)
+    this.hp2 = this.add.image(-280, -250, 'life').setScrollFactor(0, 0)
+    this.hp3 = this.add.image(-210, -250, 'life').setScrollFactor(0, 0)
 
     this.player
-      .setOrigin(0.5, 0.5)
       .setDisplaySize(tileSize * 0.9, tileSize * 0.9)
       .setCollideWorldBounds(true)
       .setDrag(800, 800)
-    this.enemy.setOrigin(0.5, 0.5).setDisplaySize(132, 120).setCollideWorldBounds(true)
-    this.reticle.setOrigin(0.5, 0.5).setDisplaySize(25, 25).setCollideWorldBounds(true)
-    this.hp1.setOrigin(0.5, 0.5).setDisplaySize(50, 50)
-    this.hp2.setOrigin(0.5, 0.5).setDisplaySize(50, 50)
-    this.hp3.setOrigin(0.5, 0.5).setDisplaySize(50, 50)
+    this.reticle.setDisplaySize(25, 25).setCollideWorldBounds(true)
+    this.hp1.setDisplaySize(50, 50)
+    this.hp2.setDisplaySize(50, 50)
+    this.hp3.setDisplaySize(50, 50)
 
     this.physics.add.overlap(this.player, this.exit, this.onExitTouched.bind(this), undefined, this)
 
     // Set sprite constiables
     this.playerHealth = 3
     this.enemyHealth = 3
-    this.enemyLastFired = 0
 
     // Set camera properties
     this.cameras.main.zoom = 0.5
@@ -253,7 +272,9 @@ class RoomScene extends Phaser.Scene {
 
         if (bullet) {
           bullet.fire(this.player, this.reticle)
-          this.physics.add.collider(this.enemy, bullet, this.enemyHitCallback.bind(this))
+          this.enemies.forEach((enemy) => {
+            this.physics.add.collider(enemy, bullet, this.enemyHitCallback.bind(this))
+          })
         }
       },
       this
@@ -276,7 +297,12 @@ class RoomScene extends Phaser.Scene {
     this.player.rotation = Phaser.Math.Angle.Between(this.player.x, this.player.y, this.reticle.x, this.reticle.y)
 
     // Rotates enemy to face towards player
-    this.enemy.rotation = Phaser.Math.Angle.Between(this.enemy.x, this.enemy.y, this.player.x, this.player.y)
+    this.enemies.forEach((enemy) => {
+      enemy.rotation = Phaser.Math.Angle.Between(enemy.x, enemy.y, this.player.x, this.player.y)
+
+      // Make enemy fire
+      this.enemyFire(enemy, this.player, time, this)
+    })
 
     //Make reticle move with player
     this.reticle.body.velocity.x = this.player.body.velocity.x
@@ -287,26 +313,29 @@ class RoomScene extends Phaser.Scene {
 
     // Constrain position of constrainReticle
     constrainReticle(this.reticle, this.player)
-
-    // Make enemy fire
-    this.enemyFire(this.enemy, this.player, time, this)
   }
 
   onExitTouched() {
     if (this.canMoveNext) {
-      this.scene.stop('room')
-      this.scene.start('room')
-      this.canMoveNext = false
+      this.level += 1
+      this.startFromBeginning()
     }
   }
 
-  enemyFire(enemy: any, player: any, time: any, gameObject: any) {
+  startFromBeginning() {
+    this.scene.stop('room')
+    this.scene.start('room')
+    this.canMoveNext = false
+  }
+
+  enemyFire(enemy: Phaser.Physics.Arcade.Sprite, player: Phaser.Physics.Arcade.Sprite, time: number, gameObject: any) {
     if (enemy.active === false) {
       return
     }
 
-    if (time - this.enemyLastFired > 1000) {
-      this.enemyLastFired = time
+    const lastFired = enemy.data.get('lastFired')
+    if (time - lastFired > 1000) {
+      enemy.setData('lastFired', time)
 
       // Get bullet from bullets group
       const bullet = this.enemyBullets.get().setActive(true).setVisible(true)
@@ -331,7 +360,8 @@ class RoomScene extends Phaser.Scene {
         this.hp2.destroy()
       } else {
         this.hp1.destroy()
-        // Game over state should execute here
+        console.log('Game over')
+        this.startFromBeginning()
       }
 
       // Destroy bullet
@@ -347,9 +377,13 @@ class RoomScene extends Phaser.Scene {
 
       // Kill enemy if health <= 0
       if (this.enemyHealth <= 0) {
+        const index = this.enemies.findIndex((enemy) => enemy === enemyHit)
         enemyHit.setActive(false).setVisible(false)
-        this.exit.setFrame(24)
-        this.canMoveNext = true
+        this.enemies.splice(index, 1)
+        if (this.enemies.length === 0) {
+          this.exit.setFrame(24)
+          this.canMoveNext = true
+        }
       }
 
       // Destroy bullet
@@ -381,6 +415,8 @@ export const app = {
     game.canvas.addEventListener('mousedown', function () {
       game.input.mouse.requestPointerLock()
     })
+
+    // game.add.text(32, 32, "this text is on the background\nuse arrows to scroll", { font: "32px Arial", fill: "#f26c4f", align: "left" });
 
     return game
   },
