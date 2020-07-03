@@ -29,7 +29,7 @@ export default function App() {
               <Link to="/move-in-the-room">Move in the room</Link>
             </li>
             <li>
-              <Link to="/shoot">Shoot</Link>
+              <Link to="/shoot">Zombie shooter</Link>
             </li>
           </ul>
         </nav>

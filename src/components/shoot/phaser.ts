@@ -6,9 +6,6 @@ import doorsTileset from '../../assets/doorsTileset.png'
 import life from '../../assets/life.png'
 import { getRandom } from '../../utils/random'
 
-// TODO: lives:
-// scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
-
 const isSamePoints = (p1: IPoint, p2: IPoint) => {
   return p1.x === p2.x && p1.y === p2.y
 }
@@ -66,6 +63,12 @@ function constrainVelocity(sprite: any, maxVelocity: any) {
     sprite.body.velocity.x = vx
     sprite.body.velocity.y = vy
   }
+}
+
+function getVelocityTo(angle: number, maxVelocity: number) {
+  const vx = Math.cos(angle) * maxVelocity
+  const vy = Math.sin(angle) * maxVelocity
+  return [vx, vy]
 }
 
 // Ensures reticle does not move offscreen
@@ -131,13 +134,13 @@ class Bullet extends Phaser.GameObjects.Image {
 
 const createEnemy = (physics: Phaser.Physics.Arcade.ArcadePhysics, room: IRoom) => {
   const enemy = physics.add.sprite(
-    getRandom(room.width - 1, 1) * tileSize,
-    getRandom(room.height - 1, 1) * tileSize,
+    getRandom(room.width - 2, 1) * tileSize,
+    getRandom(room.height - 2, 1) * tileSize,
     'player_handgun'
   )
   enemy.setDisplaySize(tileSize, tileSize).setCollideWorldBounds(true)
   enemy.setData('lastFired', 0)
-  // enemy.data.set('lastFired', 0)
+  enemy.setData('health', 3)
   return enemy
 }
 
@@ -152,8 +155,9 @@ class RoomScene extends Phaser.Scene {
   hp2!: Phaser.GameObjects.Image
   hp3!: Phaser.GameObjects.Image
   playerHealth!: number
-  enemyHealth!: number
+  scoreText!: Phaser.GameObjects.Text
   canMoveNext = false
+  score = 0
   level = 1
 
   constructor() {
@@ -199,10 +203,13 @@ class RoomScene extends Phaser.Scene {
     for (let i = 0; i < this.level; i++) {
       this.enemies.push(createEnemy(this.physics, roomData))
     }
+    console.log('=-= this.enemies', this.enemies)
     this.reticle = this.physics.add.sprite(800, 700, 'life')
     this.hp1 = this.add.image(-350, -250, 'life').setScrollFactor(0, 0)
     this.hp2 = this.add.image(-280, -250, 'life').setScrollFactor(0, 0)
     this.hp3 = this.add.image(-210, -250, 'life').setScrollFactor(0, 0)
+
+    this.scoreText = this.add.text(16, -250, 'score: 0', { fontSize: '32px', fill: '#fff' }).setScrollFactor(0, 0)
 
     this.player
       .setDisplaySize(tileSize * 0.9, tileSize * 0.9)
@@ -217,7 +224,6 @@ class RoomScene extends Phaser.Scene {
 
     // Set sprite constiables
     this.playerHealth = 3
-    this.enemyHealth = 3
 
     // Set camera properties
     this.cameras.main.zoom = 0.5
@@ -299,6 +305,8 @@ class RoomScene extends Phaser.Scene {
     // Rotates enemy to face towards player
     this.enemies.forEach((enemy) => {
       enemy.rotation = Phaser.Math.Angle.Between(enemy.x, enemy.y, this.player.x, this.player.y)
+      const [vx, vy] = getVelocityTo(enemy.rotation, 100)
+      enemy.setAcceleration(vx, vy)
 
       // Make enemy fire
       this.enemyFire(enemy, this.player, time, this)
@@ -369,17 +377,19 @@ class RoomScene extends Phaser.Scene {
     }
   }
 
-  enemyHitCallback(enemyHit: any, bulletHit: any) {
+  enemyHitCallback(enemyHit: Phaser.GameObjects.GameObject, bulletHit: Phaser.GameObjects.GameObject) {
     // Reduce health of enemy
     if (bulletHit.active === true && enemyHit.active === true) {
-      this.enemyHealth = this.enemyHealth - 1
-      console.log('Enemy hp: ', this.enemyHealth)
+      const newHealth = enemyHit.getData('health') - 1
+      enemyHit.setData('health', newHealth)
 
       // Kill enemy if health <= 0
-      if (this.enemyHealth <= 0) {
+      if (newHealth <= 0) {
         const index = this.enemies.findIndex((enemy) => enemy === enemyHit)
-        enemyHit.setActive(false).setVisible(false)
         this.enemies.splice(index, 1)
+        this.score += 1
+        this.scoreText.setText(`score: ${this.score}`)
+        enemyHit.destroy()
         if (this.enemies.length === 0) {
           this.exit.setFrame(24)
           this.canMoveNext = true
@@ -387,7 +397,7 @@ class RoomScene extends Phaser.Scene {
       }
 
       // Destroy bullet
-      bulletHit.setActive(false).setVisible(false)
+      bulletHit.destroy()
     }
   }
 }
