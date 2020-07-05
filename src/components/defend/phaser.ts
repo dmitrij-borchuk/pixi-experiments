@@ -212,6 +212,10 @@ class RoomScene extends Phaser.Scene {
       w: 2000,
       h: 2000,
     }
+
+    // Clear data
+    this.enemies = []
+
     // Background
     this.add.tileSprite(0, 0, levelData.w, levelData.h, 'stoneFloor')
 
@@ -234,13 +238,11 @@ class RoomScene extends Phaser.Scene {
     this.cameras.main.zoom = 0.5
     this.cameras.main.startFollow(this.player)
 
-    const enemy = this.createEnemy(this.spawner.x, this.spawner.y)
-    // for (let i = 0; i < this.level; i++) {
-    //   this.enemies.push(createEnemy(this.physics, roomData))
-    // }
+    this.createEnemy(this.spawner.x, this.spawner.y)
 
     // Cursor
     this.reticle = this.physics.add.sprite(this.player.body.position.x, this.player.body.position.y, 'cursor')
+    this.reticle.depth = 100
 
     // ===================================================
     const roomData = getRoom({
@@ -350,7 +352,6 @@ class RoomScene extends Phaser.Scene {
     // Rotates enemy to face towards player
     this.enemies.forEach((enemy) => {
       enemy.rotation = Phaser.Math.Angle.Between(enemy.x, enemy.y, this.player.x, this.player.y)
-      // enemy.rotation = Phaser.Math.Angle.Between(enemy.x, enemy.y, this.player.x, this.player.y) - Math.PI / 2
       const [vx, vy] = getVelocityTo(enemy.rotation, 200)
       enemy.setAcceleration(vx, vy)
 
@@ -383,8 +384,8 @@ class RoomScene extends Phaser.Scene {
 
   startFromBeginning() {
     this.scene.stop('room')
-    this.scene.start('room')
     this.canMoveNext = false
+    this.scene.start('room')
   }
 
   enemyFire(enemy: Phaser.Physics.Arcade.Sprite, player: Phaser.Physics.Arcade.Sprite, time: number, gameObject: any) {
@@ -455,11 +456,42 @@ class RoomScene extends Phaser.Scene {
   createEnemy(x: number, y: number) {
     const enemy = this.physics.add.sprite(x * tileSize, y * tileSize, 'drone')
     enemy.setDisplaySize(tileSize, tileSize).setCollideWorldBounds(true)
-    // enemy.setData('lastFired', 0)
+    enemy.setData('lastHit', 0)
     enemy.setData('health', 3)
     this.physics.add.collider(enemy, this.walls)
+    this.physics.add.overlap(this.player, enemy, this.onEnemyOverlapPlayer.bind(this), undefined, this)
+
     this.enemies.push(enemy)
     return enemy
+  }
+
+  onEnemyOverlapPlayer(player: Phaser.GameObjects.GameObject, enemy: Phaser.GameObjects.GameObject) {
+    console.log('=-= enemy.body', enemy.body)
+    const time = this.game.getTime()
+
+    const lastFired = enemy.data.get('lastHit')
+    if (time - lastFired > 1000) {
+      enemy.setData('lastHit', time)
+      this.playerHealth = this.playerHealth - 1
+      if (this.playerHealth === 2) {
+        this.hp3.destroy()
+      } else if (this.playerHealth === 1) {
+        this.hp2.destroy()
+      } else {
+        this.hp1.destroy()
+
+        this.startFromBeginning()
+      }
+    }
+
+    const enemyBody = enemy.body as Phaser.Physics.Arcade.Body
+    const playerBody = enemy.body as Phaser.Physics.Arcade.Body
+
+    const angle = Phaser.Math.Angle.Between(enemyBody.x, enemyBody.y, playerBody.x, playerBody.y)
+    const [vx, vy] = getVelocityTo(360 - angle, 200)
+
+    enemyBody.velocity.x = vx
+    enemyBody.velocity.y = vy
   }
 }
 
