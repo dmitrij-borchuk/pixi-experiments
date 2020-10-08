@@ -7,7 +7,7 @@
     "@testing-library/react": "11.0.4",
     "@testing-library/user-event": "12.1.7",
     "@types/jest": "26.0.14",
-    "@types/node": "12.12.62",
+    "@types/node": "12.12.64",
     "phaser": "3.24.1",
     "pixi.js": "5.3.3",
     "react": "16.13.1",
