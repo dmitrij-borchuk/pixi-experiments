@@ -1,3 +1,5 @@
+import { Usable } from './types'
+
 // Ensures sprite speed doesn't exceed maxVelocity while update is called
 export function constrainVelocity(sprite: any, maxVelocity: any) {
   if (!sprite || !sprite.body) return
@@ -51,4 +53,12 @@ export function getWorldSize(map: Record<string, string>) {
     w: w + 40,
     h: h + 40,
   }
+}
+
+export function isUsable(obj?: any): obj is Usable {
+  if (obj && typeof obj.use === 'function') {
+    return true
+  }
+
+  return false
 }

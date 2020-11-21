@@ -11,10 +11,12 @@ import toolbarCell from './assets/toolbarCell.png'
 import airLock from './assets/airLock.png'
 import airLockOpen from './assets/airLockOpen.png'
 import player from './assets/player.png'
+import laserGun from './assets/laserGun.png'
 // import ship from './ship.json'
-import { constrainReticle, constrainVelocity, getVelocityTo, getWorldSize } from './utils'
+import { constrainReticle, constrainVelocity, getVelocityTo, getWorldSize, isUsable } from './utils'
 import { Bullet } from './Bullet'
 import { generateShip } from '../../utils/scifiGenerator'
+import { Gun } from './Gun'
 
 const ship = generateShip()
 
@@ -28,6 +30,8 @@ enum TOOLS {
 const toolArray = [TOOLS.PISTOL, TOOLS.NOOP]
 class RoomScene extends Scene {
   private enemyBullets!: Phaser.Physics.Arcade.Group
+  private objects!: Phaser.Physics.Arcade.Group
+  private toolBox!: Phaser.GameObjects.Container
   private player!: Phaser.Physics.Arcade.Sprite
   private enemies: Phaser.Physics.Arcade.Sprite[] = []
   private reticle!: Phaser.Physics.Arcade.Sprite
@@ -43,13 +47,15 @@ class RoomScene extends Scene {
     y: -10,
   }
   private walls!: Phaser.Physics.Arcade.StaticGroup
-  private currentTool = toolArray[0]
+  private currentTool = toolArray[1]
 
   constructor() {
     super('room')
   }
   preload() {
     // Load in images and sprites
+    // TODO: fix loading problem
+    // if you remove next line other textures will not load on start
     this.load.image('stoneFloor', stoneFloor)
     this.textures.addBase64('player_handgun', player)
     this.textures.addBase64('wall', wall)
@@ -61,6 +67,7 @@ class RoomScene extends Scene {
     this.textures.addBase64('toolbarCell', toolbarCell)
     this.textures.addBase64('laserBullet', laserBullet)
     this.textures.addBase64('bullet', bullet)
+    this.textures.addBase64('laserGun', laserGun)
   }
   create() {
     const worldSize = getWorldSize(ship.map)
@@ -78,6 +85,7 @@ class RoomScene extends Scene {
     )
 
     // Initial structure
+    this.objects = this.physics.add.group({ classType: Gun })
     const { walls } = this.makeInitialStructure()
     this.walls = walls
 
@@ -213,20 +221,20 @@ class RoomScene extends Scene {
       this
     )
 
-    this.input.on(
-      'wheel',
-      (pointer: { movementX: any; movementY: any }, objects: any[], dx: number, dy: number, dz: number) => {
-        const index = toolArray.findIndex((tool) => tool === this.currentTool)
-        const newIndex = dy > 0 ? index + 1 : index - 1
-        if (newIndex < 0) {
-          this.currentTool = toolArray[toolArray.length - 1]
-        } else if (newIndex >= toolArray.length) {
-          this.currentTool = toolArray[0]
-        } else {
-          this.currentTool = toolArray[newIndex]
-        }
-      }
-    )
+    // this.input.on(
+    //   'wheel',
+    //   (pointer: { movementX: any; movementY: any }, objects: any[], dx: number, dy: number, dz: number) => {
+    //     const index = toolArray.findIndex((tool) => tool === this.currentTool)
+    //     const newIndex = dy > 0 ? index + 1 : index - 1
+    //     if (newIndex < 0) {
+    //       this.currentTool = toolArray[toolArray.length - 1]
+    //     } else if (newIndex >= toolArray.length) {
+    //       this.currentTool = toolArray[0]
+    //     } else {
+    //       this.currentTool = toolArray[newIndex]
+    //     }
+    //   }
+    // )
   }
   update(time: any, delta: any) {
     // Rotates player to face towards reticle
@@ -280,8 +288,9 @@ class RoomScene extends Scene {
     return [x / tileSize, y / tileSize]
   }
 
-  private getObjectUnderCursor() {
+  private getObjectUnderCursor(): [any | undefined, string | undefined] {
     const [x, y] = this.getTileCoordsUnderCursor()
+    // TODO: resolve any
     const tile = this.objectMap[`${x}|${y}`]
     const key = `${x}|${y}`
 
@@ -298,6 +307,7 @@ class RoomScene extends Scene {
 
   private onUsePressed() {
     const [obj, type] = this.getObjectUnderCursor()
+    // console.log('=-= obj, type', obj, type)
 
     if (type === 'airLock') {
       if (obj.body.enable) {
@@ -306,6 +316,22 @@ class RoomScene extends Scene {
       } else {
         obj.setTexture('airLock')
         obj.enableBody()
+      }
+    }
+
+    if (isUsable(obj)) {
+      const result = obj.use()
+      const { inventory } = result || {}
+      if (inventory) {
+        inventory.forEach((item) => {
+          if (item === 'laserGun') {
+            this.currentTool = TOOLS.PISTOL
+            const gun = this.add.image(0, 0, 'laserGun').setDisplaySize(113, 127).setScrollFactor(0)
+            // const bar = this.add.image(0, 0, 'laserBullet').setDisplaySize(113, 127).setScrollFactor(0)
+            // gun.depth = 91
+            this.toolBox.add(gun)
+          }
+        })
       }
     }
   }
@@ -424,11 +450,11 @@ class RoomScene extends Scene {
     const { width, height } = this.game.config
     const x = +width / 2
     const y = +height * 1.5 - 127 / 2
-    var container = this.add.container(x, y)
+    this.toolBox = this.add.container(x, y)
     const bar = this.add.image(0, 0, 'toolbarCell').setDisplaySize(113, 127).setScrollFactor(0)
     // const bar = this.add.image(0, 0, 'laserBullet').setDisplaySize(113, 127).setScrollFactor(0)
     bar.depth = 90
-    container.add(bar)
+    this.toolBox.add(bar)
   }
 
   private objectMap: Record<string, any> = {}
@@ -445,8 +471,9 @@ class RoomScene extends Scene {
       const lineIndex = parseInt(indexes[1], 10)
       const columnIndex = parseInt(indexes[0], 10)
       const item = ship.map[key]
+      const x = columnIndex * tileSize
+      const y = lineIndex * tileSize
 
-      // console.log('=-= item', item)
       if (item === 'wall') {
         const obj = this.walls
           .create(columnIndex * tileSize, lineIndex * tileSize, 'wall')
@@ -460,6 +487,12 @@ class RoomScene extends Scene {
           .create(columnIndex * tileSize, lineIndex * tileSize, 'airLock')
           .setDisplaySize(tileSize, tileSize)
           .refreshBody()
+
+        this.objectMap[`${columnIndex}|${lineIndex}`] = obj
+      }
+
+      if (item === 'laserGun') {
+        const obj = this.objects.create(x, y)
 
         this.objectMap[`${columnIndex}|${lineIndex}`] = obj
       }
