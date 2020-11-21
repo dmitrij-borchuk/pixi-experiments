@@ -1,0 +1,15 @@
+{
+  "map": [
+    ["wall", "wall", "wall", "wall", "wall", "wall", "wall"],
+    ["wall", null, null, null, null, null, "wall"],
+    ["wall", null, null, null, null, null, "wall"],
+    ["wall", null, null, null, null, null, "wall"],
+    ["wall", null, null, null, null, null, "wall"],
+    ["wall", null, null, null, null, null, "wall"],
+    ["wall", "wall", "wall", "airLock", "wall", "wall", "wall"],
+    [null, null, "wall", "airLock", "wall", null, null],
+    [null, null, "wall", null, "wall", null, null],
+    [null, null, "wall", "wall", "wall", null, null]
+  ],
+  "startPoint": [3, 8]
+}

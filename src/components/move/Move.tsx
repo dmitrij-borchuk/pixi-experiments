@@ -4,9 +4,7 @@ import { KeyboardHandler } from '../keyboardHandler/KeyboardHandler'
 
 export const Move = () => {
   const ref = useRef<HTMLDivElement>(null)
-  const onKeyDown = useCallback((e: KeyboardEvent) => {
-    console.log('=-= e', e)
-  }, [])
+  const onKeyDown = useCallback((e: KeyboardEvent) => {}, [])
 
   useEffect(() => {
     const app = getApp()
