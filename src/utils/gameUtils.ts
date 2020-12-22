@@ -78,3 +78,8 @@ export function applyMovement(scene: Scene, sprite: Phaser.Physics.Arcade.Sprite
     },
   }
 }
+
+export function applyCameraToSprite(scene: Scene, sprite: Phaser.Physics.Arcade.Sprite) {
+  scene.cameras.main.zoom = 0.5
+  scene.cameras.main.startFollow(sprite)
+}

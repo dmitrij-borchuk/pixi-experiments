@@ -1,0 +1,9 @@
+{
+  "id": "ironPlate",
+  "displayNameKey": "ironPlate",
+  "defaultDisplayName": "Iron plate",
+  "isContainer": false,
+  "view": "./assets/ironPlate.png",
+  "isDroppable": true,
+  "isBuildable": false
+}

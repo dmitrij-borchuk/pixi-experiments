@@ -1,7 +1,8 @@
 import Phaser, { Scene } from 'phaser'
 import stoneFloor from './assets/stoneFloor.jpg'
 import player from './assets/player.png'
-import { applyMovement, applyPlayer, applyPointerLock } from '../../utils/gameUtils'
+import { applyCameraToSprite, applyMovement, applyPlayer, applyPointerLock } from '../../utils/gameUtils'
+import { generateInitialStructure } from './generator'
 
 const tileSize = 120
 
@@ -26,12 +27,8 @@ export class RoomScene extends Scene {
     this.textures.addBase64(TEXTURES.player, player)
   }
   create() {
-    const worldSize = {
-      x: 0,
-      y: 0,
-      h: 100,
-      w: 100,
-    }
+    const initialData = generateInitialStructure()
+    const worldSize = initialData.world
 
     // Set world bounds
     this.physics.world.setBounds(
@@ -42,9 +39,17 @@ export class RoomScene extends Scene {
     )
 
     // Background
-    this.add.tileSprite(0, 0, worldSize.w * tileSize, worldSize.h * tileSize, TEXTURES.stoneFloor)
+    this.add.tileSprite(
+      (worldSize.x + worldSize.w / 2) * tileSize,
+      (worldSize.y + worldSize.h / 2) * tileSize,
+      worldSize.w * tileSize,
+      worldSize.h * tileSize,
+      TEXTURES.stoneFloor
+    )
 
-    this.addPlayer()
+    this.addPlayer(initialData.player.position)
+
+    applyCameraToSprite(this, this.player)
   }
   update(time: number, delta: number) {
     this.onUpdateListeners.forEach((cb) => {
@@ -52,9 +57,9 @@ export class RoomScene extends Scene {
     })
   }
 
-  private addPlayer() {
+  private addPlayer(position: [number, number]) {
     this.player = applyPlayer(this, {
-      coords: [0, 0],
+      coords: position,
       tileSize,
       scale: 0.5,
     })
