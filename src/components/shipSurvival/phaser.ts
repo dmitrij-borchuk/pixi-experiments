@@ -15,10 +15,12 @@ import laserGun from './assets/laserGun.png'
 // import ship from './ship.json'
 import { constrainReticle, constrainVelocity, getVelocityTo, getWorldSize, isUsable } from './utils'
 import { Bullet } from './Bullet'
-import { generateShip } from '../../utils/scifiGenerator'
+import { generateShip, generateStation } from '../../utils/scifiGenerator'
 import { Gun } from './Gun'
+import { Spawner } from './Spawner'
 
-const ship = generateShip()
+// const ship = generateShip()
+const ship = generateStation()
 
 const tileSize = 120
 
@@ -28,11 +30,12 @@ enum TOOLS {
   PISTOL = 'PISTOL',
 }
 const toolArray = [TOOLS.PISTOL, TOOLS.NOOP]
-class RoomScene extends Scene {
+export class RoomScene extends Scene {
   private enemyBullets!: Phaser.Physics.Arcade.Group
+  // TODO: probably this shouldn't be `Phaser.Physics.Arcade.Group`
   private objects!: Phaser.Physics.Arcade.Group
   private toolBox!: Phaser.GameObjects.Container
-  private player!: Phaser.Physics.Arcade.Sprite
+  public player!: Phaser.Physics.Arcade.Sprite
   private enemies: Phaser.Physics.Arcade.Sprite[] = []
   private reticle!: Phaser.Physics.Arcade.Sprite
   private hp1!: Phaser.GameObjects.Image
@@ -46,7 +49,8 @@ class RoomScene extends Scene {
     x: -10,
     y: -10,
   }
-  private walls!: Phaser.Physics.Arcade.StaticGroup
+  private spawners: Spawner[] = []
+  public walls!: Phaser.Physics.Arcade.StaticGroup
   private currentTool = toolArray[1]
 
   constructor() {
@@ -95,7 +99,7 @@ class RoomScene extends Scene {
     this.cameras.main.zoom = 0.5
     this.cameras.main.startFollow(this.player)
 
-    this.createEnemy(this.spawner.x, this.spawner.y)
+    // this.createEnemy(this.spawner.x, this.spawner.y)
 
     // UI
     this.createItemsBar()
@@ -193,6 +197,7 @@ class RoomScene extends Scene {
 
           if (bullet) {
             bullet.fire(this.player, this.reticle)
+            // TODO: sometimes bullets go through the enemy
             this.enemies.forEach((enemy) => {
               this.physics.add.collider(enemy, bullet, this.enemyHitCallback.bind(this))
             })
@@ -260,10 +265,12 @@ class RoomScene extends Scene {
     // Constrain position of constrainReticle
     constrainReticle(this.reticle, this.player)
 
-    if (time - this.lastEnemyOffset > 30000) {
-      this.lastEnemyOffset = time
-      this.createEnemy(this.spawner.x, this.spawner.y)
-    }
+    // if (time - this.lastEnemyOffset > 30000) {
+    //   this.lastEnemyOffset = time
+    //   // this.createEnemy(this.spawner.x, this.spawner.y)
+    // }
+
+    this.spawners.forEach((spawner) => spawner.update(time, delta))
   }
 
   private getLocalCoordsUnderCursor() {
@@ -406,14 +413,16 @@ class RoomScene extends Scene {
     }
   }
 
-  createEnemy(x: number, y: number) {
+  public createEnemy(x: number, y: number) {
     const enemy = this.physics.add.sprite(x * tileSize, y * tileSize, 'drone')
     enemy.setDisplaySize(tileSize, tileSize).setCollideWorldBounds(true)
     enemy.setData('lastHit', 0)
     enemy.setData('health', 3)
     this.physics.add.collider(enemy, this.walls)
     // this.physics.add.overlap(this.player, enemy, this.onEnemyOverlapPlayer.bind(this), undefined, this)
-    this.physics.add.collider(this.player, enemy, this.onEnemyOverlapPlayer.bind(this), undefined, this)
+    if (this.player) {
+      this.physics.add.collider(this.player, enemy, this.onEnemyOverlapPlayer.bind(this), undefined, this)
+    }
     this.enemies.push(enemy)
     return enemy
   }
@@ -496,6 +505,11 @@ class RoomScene extends Scene {
 
         this.objectMap[`${columnIndex}|${lineIndex}`] = obj
       }
+
+      if (item === 'spawner.drone') {
+        this.spawners.push(new Spawner(this, columnIndex, lineIndex))
+        // this.createEnemy(columnIndex, lineIndex)
+      }
     })
 
     return { walls: this.walls }
@@ -505,6 +519,9 @@ class RoomScene extends Scene {
     const [x, y] = ship.startPoint
     this.player = this.physics.add.sprite(x * tileSize, y * tileSize, 'player_handgun')
     this.physics.add.collider(this.player, this.walls)
+    this.enemies.forEach((enemy) =>
+      this.physics.add.collider(this.player, enemy, this.onEnemyOverlapPlayer.bind(this), undefined, this)
+    )
     this.player
       .setDisplaySize(tileSize * 0.5, tileSize * 0.5)
       .setCollideWorldBounds(true)
