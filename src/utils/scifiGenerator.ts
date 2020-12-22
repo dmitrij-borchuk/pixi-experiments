@@ -253,7 +253,6 @@ export function generateStation() {
   ]
 
   const relationship = getAllToAllRelationship(modules)
-  console.log('=-= getAllToAllRelationship', relationship)
   let foundOverlap = true
   const maxCircle = 110
   let currentCircle = 0
@@ -275,7 +274,6 @@ export function generateStation() {
         //   return Math.abs(newRect[prop] - moduleFrom[prop]) > 1
         // })
         if (moreThan1) {
-          console.log('=-= !!!!!!!!!!!!!!', newRect, moduleFrom)
         }
         Object.assign(moduleFrom, newRect)
       }
@@ -283,9 +281,6 @@ export function generateStation() {
 
     foundOverlap = overlapped
   }
-
-  console.log('=-= modulesTmp', modulesTmp)
-  console.log('=-= modules', modules)
 
   modules.forEach((module) => {
     Object.assign(map, fillRect(module.left, module.top, module.right - module.left, module.bottom - module.top))

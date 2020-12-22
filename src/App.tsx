@@ -9,6 +9,7 @@ import { Shoot } from './components/shoot/Shoot'
 import { Defend } from './components/defend/Defend'
 import { Station } from './components/station/Station'
 import { Survival } from './components/shipSurvival/Survival'
+import { DwarfsStation } from './components/dwarfsStation'
 
 export default function App() {
   return (
@@ -43,6 +44,9 @@ export default function App() {
             <li>
               <Link to="/survival">Survival</Link>
             </li>
+            <li>
+              <Link to="/dwarfsStation">Dwarfs Station</Link>
+            </li>
           </ul>
         </nav>
       </header>
@@ -71,6 +75,9 @@ export default function App() {
           </Route>
           <Route path="/survival">
             <Survival />
+          </Route>
+          <Route path="/dwarfsStation">
+            <DwarfsStation />
           </Route>
 
           <Route path="/">
