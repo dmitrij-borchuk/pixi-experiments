@@ -1,21 +1,14 @@
 import Phaser, { Scene } from 'phaser'
 import { applyCameraToSprite, applyMovement } from '../../utils/gameUtils'
 import { generateInitialStructure, ObjectInstanceConfig } from './generator'
-import frameConfig from './frame.json'
-import ironPlateConfig from './ironPlate.json'
-import { ObjectConfig } from './types'
 import { getRandom } from '../../utils/random'
 import { Player } from './Player'
 import { name2texture, TEXTURES } from './textures'
+import { objectsConfig } from './objectsConfig'
 import { HUDScene } from './HUD'
 
 const tileSize = 120
 const maxDistanceToInteract = tileSize * 2
-
-const objectConfigs: Record<string, ObjectConfig> = {
-  frame: frameConfig,
-  ironPlate: ironPlateConfig,
-}
 
 // TODO: add loading
 // https://gamedevacademy.org/creating-a-preloading-screen-in-phaser-3/?a=13
@@ -23,14 +16,13 @@ const objectConfigs: Record<string, ObjectConfig> = {
 // TODO: remove events when some UI window opened
 // pointer, keyboard events
 
-export class RoomScene extends Scene {
-  private player!: Player
+export class MainScene extends Scene {
+  public player!: Player
   private onUpdateListeners: ((time: number, delta: number) => void)[] = []
   private lyingObjects!: Phaser.GameObjects.Group
-  private toolBox!: Phaser.GameObjects.Container
 
   constructor() {
-    super('room')
+    super('mainScene')
   }
   preload() {
     // Load in images and sprites
@@ -71,8 +63,6 @@ export class RoomScene extends Scene {
     applyCameraToSprite(this, this.player)
 
     this.addMouseEvents()
-
-    // this.createItemsBar()
   }
   update(time: number, delta: number) {
     this.onUpdateListeners.forEach((cb) => {
@@ -109,7 +99,7 @@ export class RoomScene extends Scene {
         amount,
       } = config
 
-      const constructorConfig = objectConfigs[id]
+      const constructorConfig = objectsConfig[id]
 
       if (constructorConfig) {
         let size = tileSize
@@ -155,21 +145,6 @@ export class RoomScene extends Scene {
       }
     }
   }
-
-  private createItemsBar() {
-    const { displayHeight } = this.cameras.main
-    console.log('=-= displayHeight', displayHeight)
-    const cellHeight = 127
-    const cellWidth = 113
-    this.toolBox = this.add.container(cellWidth / 2, 600 - cellHeight / 2)
-    // this.toolBox.fixedToCamera
-    const bar = this.add.image(0, 0, TEXTURES.toolbarCell)
-    // bar.fix
-    bar.setDisplaySize(113, cellHeight)
-    bar.setScrollFactor(0)
-    bar.depth = 90
-    this.toolBox.add(bar)
-  }
 }
 
 const config: Phaser.Types.Core.GameConfig = {
@@ -184,8 +159,7 @@ const config: Phaser.Types.Core.GameConfig = {
       debug: true,
     },
   },
-  // scene: RoomScene,
-  scene: [RoomScene, HUDScene],
+  scene: [MainScene, HUDScene],
   render: {
     pixelArt: true,
   },

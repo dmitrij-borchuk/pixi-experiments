@@ -1,4 +1,7 @@
 import { name2texture, TEXTURES } from './textures'
+import { MainScene } from './game'
+import { ObjectInstanceDescriptor } from './types'
+import { objectsConfig } from './objectsConfig'
 
 export class HUDScene extends Phaser.Scene {
   private toolBox!: Phaser.GameObjects.Container
@@ -39,19 +42,25 @@ export class HUDScene extends Phaser.Scene {
     this.input.on('gameobjectup', this.onBackpackClick.bind(this))
   }
 
-  private makeBackpackContainer() {
+  private makeBackpackContainer(list?: ObjectInstanceDescriptor[]) {
+    if (this.backpackContent) {
+      this.backpackContent.destroy()
+    }
     const { displayHeight, displayWidth } = this.cameras.main
     // TODO: close on `esc`
     const uiMaxSize = 0.8
     this.backpackContent = this.add.container(displayWidth / 2, displayHeight / 2)
+    this.backpackContent.setVisible(false)
 
     const bg = this.add.rectangle(0, 0, displayWidth * uiMaxSize, displayHeight * uiMaxSize, 0x6666ff)
     this.backpackContent.add(bg)
+    const bgLeft = -(bg.width / 2)
+    const bgTop = -(bg.height / 2)
 
     const closeSize = 50
     const close = this.add.rectangle(
       bg.width / 2 - closeSize / 2,
-      -(bg.height / 2 - closeSize / 2),
+      bgTop + closeSize / 2,
       closeSize,
       closeSize,
       0x555555
@@ -60,11 +69,36 @@ export class HUDScene extends Phaser.Scene {
     close.setInteractive()
     close.on('pointerdown', () => this.backpackContent.setVisible(false))
 
-    this.backpackContent.setVisible(false)
+    const tileSize = 60
+    list?.forEach((item, i) => {
+      const { id, amount } = item
+
+      const constructorConfig = objectsConfig[id]
+
+      if (constructorConfig) {
+        let size = tileSize * 0.9
+        // TODO: make line wrap
+        const obj: Phaser.GameObjects.Image = this.add.image(
+          bgLeft + i * tileSize + tileSize / 2,
+          bgTop + closeSize + tileSize / 2,
+          constructorConfig.view
+        )
+        obj.setDisplaySize(size, size)
+        obj.setData('amount', amount)
+        obj.setData('id', id)
+        // obj.setInteractive()
+
+        this.backpackContent.add(obj)
+      }
+    })
   }
 
   private onBackpackClick() {
-    console.log('=-= open backpack')
+    // TODO: use constant
+    const mainScene = this.scene.get('mainScene') as MainScene
+    const content = mainScene.player.getContent()
+    this.makeBackpackContainer(content)
+
     this.backpackContent.setVisible(true)
   }
 }
