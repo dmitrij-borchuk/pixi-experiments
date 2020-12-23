@@ -3,7 +3,7 @@
   "displayNameKey": "ironPlate",
   "defaultDisplayName": "Iron plate",
   "isContainer": false,
-  "view": "./assets/ironPlate.png",
+  "view": "ironPlate",
   "isDroppable": true,
   "isBuildable": false
 }

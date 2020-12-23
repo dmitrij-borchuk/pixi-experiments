@@ -1,3 +1,10 @@
+export interface ObjectInstanceConfig {
+  id: string
+  state: 'kit' | 'constructed'
+  amount: number
+  position: [number, number]
+}
+
 export function generateInitialStructure() {
   return {
     world: {
@@ -9,5 +16,13 @@ export function generateInitialStructure() {
     player: {
       position: [50, 50] as [number, number],
     },
+    objects: [
+      {
+        id: 'frame',
+        state: 'kit',
+        amount: 20,
+        position: [52, 52],
+      },
+    ],
   }
 }

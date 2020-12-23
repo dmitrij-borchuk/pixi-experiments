@@ -3,10 +3,10 @@
   "displayNameKey": "frame",
   "defaultDisplayName": "Frame",
   "isContainer": false,
-  "view": "./assets/frame.png",
+  "view": "frame",
   "isDroppable": true,
   "isBuildable": true,
-
+  "stack": 50,
   "buildProps": {
     "isSolid": true,
     "buildSteps": [
