@@ -83,3 +83,7 @@ export function applyCameraToSprite(scene: Scene, sprite: Phaser.Physics.Arcade.
   scene.cameras.main.zoom = 0.5
   scene.cameras.main.startFollow(sprite)
 }
+
+export function getTileFomCoords(tileW: number, tileH: number, x: number, y: number) {
+  return [Math.floor((x + tileW / 2) / tileW), Math.floor((y + tileH / 2) / tileH)]
+}

@@ -39,13 +39,11 @@ export class HUDScene extends Phaser.Scene {
     backpackSlot.setInteractive()
     backpackSlot.depth = 90
     this.toolBox.add(backpackSlot)
+    backpackSlot.on('pointerdown', this.onBackpackClick.bind(this))
 
     this.makeBackpackContainer()
 
     this.makeBelt()
-
-    // Should listen only one object
-    this.input.on('gameobjectup', this.onBackpackClick.bind(this))
 
     this.input.on('drag', (pointer: Phaser.Input.Pointer, gameObject: any, dragX: number, dragY: number) => {
       gameObject.x = dragX
@@ -113,6 +111,7 @@ export class HUDScene extends Phaser.Scene {
 
         this.input.setDraggable(obj)
 
+        // TODO: add amount text
         this.backpackContent.add(obj)
       }
     })
@@ -157,7 +156,13 @@ export class HUDScene extends Phaser.Scene {
         obj.setData('amount', descriptor.amount)
         obj.setData('id', descriptor.id)
         this.beltContent.add(obj)
+
+        slot.on('pointerdown', () => this.onBeltSlotClick(i))
       }
     }
+  }
+
+  private onBeltSlotClick(index: number) {
+    this.events.emit('beltSlotClick', this.belt[index])
   }
 }

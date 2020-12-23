@@ -20,9 +20,17 @@ export interface ObjectConfig {
       lightOpaque: boolean
     }[]
   }
+  maxHealth?: number
 }
 
 export interface ObjectInstanceDescriptor {
   id: string
   amount: string
+}
+
+export interface ConstructedObjectDescriptor {
+  id: string
+  step: number
+  angle: number
+  health: number
 }

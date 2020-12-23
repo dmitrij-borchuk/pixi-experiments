@@ -1,11 +1,12 @@
 import Phaser, { Scene } from 'phaser'
-import { applyCameraToSprite, applyMovement } from '../../utils/gameUtils'
+import { applyCameraToSprite, applyMovement, getTileFomCoords } from '../../utils/gameUtils'
 import { generateInitialStructure, ObjectInstanceConfig } from './generator'
 import { getRandom } from '../../utils/random'
 import { Player } from './Player'
 import { name2texture, TEXTURES } from './textures'
 import { objectsConfig } from './objectsConfig'
 import { HUDScene } from './HUD'
+import { ObjectInstanceDescriptor } from './types'
 
 const tileSize = 120
 const maxDistanceToInteract = tileSize * 2
@@ -20,6 +21,7 @@ export class MainScene extends Scene {
   public player!: Player
   private onUpdateListeners: ((time: number, delta: number) => void)[] = []
   private lyingObjects!: Phaser.GameObjects.Group
+  private buildPreview?: Phaser.GameObjects.Image
 
   constructor() {
     super('mainScene')
@@ -63,11 +65,39 @@ export class MainScene extends Scene {
     applyCameraToSprite(this, this.player)
 
     this.addMouseEvents()
+
+    const hud = this.scene.get('HUDScene') as HUDScene
+    hud.events.on('beltSlotClick', this.onBeltSlotClick.bind(this))
   }
   update(time: number, delta: number) {
     this.onUpdateListeners.forEach((cb) => {
       cb(time, delta)
     })
+
+    if (this.buildPreview) {
+      // update position of tool preview
+      this.game.input.mousePointer.updateWorldPoint(this.cameras.main)
+      const { worldX, worldY } = this.game.input.mousePointer
+      const [x, y] = getTileFomCoords(tileSize, tileSize, worldX, worldY)
+      this.buildPreview.setPosition(x * tileSize, y * tileSize)
+    }
+  }
+
+  private onBeltSlotClick(descriptor?: ObjectInstanceDescriptor) {
+    // TODO: check if buildable
+    if (this.buildPreview) {
+      this.buildPreview.destroy()
+      this.buildPreview = undefined
+    }
+
+    const constructorConfig = descriptor && objectsConfig[descriptor.id]
+
+    if (constructorConfig) {
+      this.buildPreview = this.add.image(0, 0, constructorConfig.view)
+      this.buildPreview.setDisplaySize(tileSize, tileSize)
+      this.buildPreview.setTint(0x55ff55, 0x55ff55, 0x55ff55, 0x55ff55)
+      this.buildPreview.setAlpha(0.5)
+    }
   }
 
   private addPlayer(position: [number, number]) {
