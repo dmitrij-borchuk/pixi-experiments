@@ -6,6 +6,9 @@ import { objectsConfig } from './objectsConfig'
 export class HUDScene extends Phaser.Scene {
   private toolBox!: Phaser.GameObjects.Container
   private backpackContent!: Phaser.GameObjects.Container
+  private beltContent!: Phaser.GameObjects.Container
+
+  private belt: ObjectInstanceDescriptor[] = []
 
   constructor() {
     super({ key: 'HUDScene', active: true })
@@ -39,7 +42,29 @@ export class HUDScene extends Phaser.Scene {
 
     this.makeBackpackContainer()
 
+    this.makeBelt()
+
+    // Should listen only one object
     this.input.on('gameobjectup', this.onBackpackClick.bind(this))
+
+    this.input.on('drag', (pointer: Phaser.Input.Pointer, gameObject: any, dragX: number, dragY: number) => {
+      gameObject.x = dragX
+      gameObject.y = dragY
+    })
+    this.input.on('dragend', (pointer: Phaser.Input.Pointer, gameObject: any, dragX: number, dragY: number) => {
+      const [firstHit] = this.input.manager.hitTest(
+        pointer,
+        this.beltContent.getAll(),
+        this.cameras.main
+      ) as Phaser.GameObjects.Image[]
+      const index = firstHit.getData('index')
+      this.belt[index] = {
+        id: gameObject.getData('id'),
+        amount: gameObject.getData('amount'),
+      }
+      gameObject.destroy()
+      this.makeBelt()
+    })
   }
 
   private makeBackpackContainer(list?: ObjectInstanceDescriptor[]) {
@@ -48,7 +73,7 @@ export class HUDScene extends Phaser.Scene {
     }
     const { displayHeight, displayWidth } = this.cameras.main
     // TODO: close on `esc`
-    const uiMaxSize = 0.8
+    const uiMaxSize = 0.7
     this.backpackContent = this.add.container(displayWidth / 2, displayHeight / 2)
     this.backpackContent.setVisible(false)
 
@@ -78,15 +103,15 @@ export class HUDScene extends Phaser.Scene {
       if (constructorConfig) {
         let size = tileSize * 0.9
         // TODO: make line wrap
-        const obj: Phaser.GameObjects.Image = this.add.image(
-          bgLeft + i * tileSize + tileSize / 2,
-          bgTop + closeSize + tileSize / 2,
-          constructorConfig.view
-        )
+        const x = bgLeft + i * tileSize + tileSize / 2
+        const y = bgTop + closeSize + tileSize / 2
+        const obj: Phaser.GameObjects.Image = this.add.image(x, y, constructorConfig.view)
         obj.setDisplaySize(size, size)
         obj.setData('amount', amount)
         obj.setData('id', id)
-        // obj.setInteractive()
+        obj.setInteractive()
+
+        this.input.setDraggable(obj)
 
         this.backpackContent.add(obj)
       }
@@ -100,5 +125,39 @@ export class HUDScene extends Phaser.Scene {
     this.makeBackpackContainer(content)
 
     this.backpackContent.setVisible(true)
+  }
+
+  private makeBelt() {
+    if (this.beltContent) {
+      this.beltContent.destroy()
+    }
+    const { displayHeight, displayWidth } = this.cameras.main
+    const cellHeight = 64
+    const cellWidth = 57
+    const cellAmount = 5
+    const beltWidth = (cellAmount - 1) * cellWidth
+    this.beltContent = this.add.container(displayWidth / 2, displayHeight - cellHeight / 2)
+    for (let i = 0; i < cellAmount; i++) {
+      const x = i * cellWidth - beltWidth / 2
+      const y = 0
+      const slot = this.add.image(x, y, TEXTURES.toolbarCell)
+      slot.setDisplaySize(cellWidth, cellHeight)
+      slot.setScrollFactor(0)
+      slot.setInteractive()
+      slot.depth = 90
+      slot.setData('index', i)
+      this.beltContent.add(slot)
+
+      const descriptor = this.belt[i]
+      const constructorConfig = objectsConfig[descriptor?.id]
+      if (constructorConfig) {
+        const size = cellWidth * 0.7
+        const obj: Phaser.GameObjects.Image = this.add.image(x, y, constructorConfig.view)
+        obj.setDisplaySize(size, size)
+        obj.setData('amount', descriptor.amount)
+        obj.setData('id', descriptor.id)
+        this.beltContent.add(obj)
+      }
+    }
   }
 }

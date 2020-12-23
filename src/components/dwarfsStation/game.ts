@@ -136,10 +136,11 @@ export class MainScene extends Scene {
       ) as Phaser.GameObjects.Image[]
 
       if (firstHit) {
-        this.player.addToContainer({
+        const obj = {
           id: firstHit.getData('id'),
           amount: firstHit.getData('amount'),
-        })
+        }
+        this.player.addToContainer(obj)
         // TODO: it could be animated with flying to player and scaling to 0
         firstHit.destroy()
       }
