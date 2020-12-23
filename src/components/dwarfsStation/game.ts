@@ -1,8 +1,4 @@
 import Phaser, { Scene } from 'phaser'
-import stoneFloor from './assets/stoneFloor.jpg'
-import player from './assets/player.png'
-import frame from './assets/frame.png'
-import ironPlate from './assets/ironPlate.png'
 import { applyCameraToSprite, applyMovement } from '../../utils/gameUtils'
 import { generateInitialStructure, ObjectInstanceConfig } from './generator'
 import frameConfig from './frame.json'
@@ -10,16 +6,11 @@ import ironPlateConfig from './ironPlate.json'
 import { ObjectConfig } from './types'
 import { getRandom } from '../../utils/random'
 import { Player } from './Player'
+import { name2texture, TEXTURES } from './textures'
+import { HUDScene } from './HUD'
 
 const tileSize = 120
 const maxDistanceToInteract = tileSize * 2
-
-enum TEXTURES {
-  stoneFloor = 'stoneFloor',
-  player = 'player',
-  frame = 'frame',
-  ironPlate = 'ironPlate',
-}
 
 const objectConfigs: Record<string, ObjectConfig> = {
   frame: frameConfig,
@@ -28,22 +19,29 @@ const objectConfigs: Record<string, ObjectConfig> = {
 
 // TODO: add loading
 // https://gamedevacademy.org/creating-a-preloading-screen-in-phaser-3/?a=13
+
+// TODO: remove events when some UI window opened
+// pointer, keyboard events
+
 export class RoomScene extends Scene {
   private player!: Player
   private onUpdateListeners: ((time: number, delta: number) => void)[] = []
   private lyingObjects!: Phaser.GameObjects.Group
+  private toolBox!: Phaser.GameObjects.Container
 
   constructor() {
     super('room')
   }
   preload() {
     // Load in images and sprites
+
     // TODO: fix loading problem
     // if you remove next line other textures will not load on start
-    this.load.image(TEXTURES.stoneFloor, stoneFloor)
-    this.textures.addBase64(TEXTURES.player, player)
-    this.textures.addBase64(TEXTURES.frame, frame)
-    this.textures.addBase64(TEXTURES.ironPlate, ironPlate)
+    // looks like we need to use `this.textures.on('onload', (name: string) => {})`
+    this.load.image(TEXTURES.stoneFloor, name2texture.stoneFloor)
+    this.textures.addBase64(TEXTURES.player, name2texture.player)
+    this.textures.addBase64(TEXTURES.frame, name2texture.frame)
+    this.textures.addBase64(TEXTURES.ironPlate, name2texture.ironPlate)
   }
   create() {
     const initialData = generateInitialStructure()
@@ -73,6 +71,8 @@ export class RoomScene extends Scene {
     applyCameraToSprite(this, this.player)
 
     this.addMouseEvents()
+
+    // this.createItemsBar()
   }
   update(time: number, delta: number) {
     this.onUpdateListeners.forEach((cb) => {
@@ -100,8 +100,6 @@ export class RoomScene extends Scene {
 
   private makeInitialStructure(objects: any) {
     this.lyingObjects = new Phaser.GameObjects.Group(this)
-
-    this.add.image(0, 0, 'toolbarCell')
 
     objects.forEach((config: ObjectInstanceConfig) => {
       const {
@@ -157,6 +155,21 @@ export class RoomScene extends Scene {
       }
     }
   }
+
+  private createItemsBar() {
+    const { displayHeight } = this.cameras.main
+    console.log('=-= displayHeight', displayHeight)
+    const cellHeight = 127
+    const cellWidth = 113
+    this.toolBox = this.add.container(cellWidth / 2, 600 - cellHeight / 2)
+    // this.toolBox.fixedToCamera
+    const bar = this.add.image(0, 0, TEXTURES.toolbarCell)
+    // bar.fix
+    bar.setDisplaySize(113, cellHeight)
+    bar.setScrollFactor(0)
+    bar.depth = 90
+    this.toolBox.add(bar)
+  }
 }
 
 const config: Phaser.Types.Core.GameConfig = {
@@ -171,7 +184,8 @@ const config: Phaser.Types.Core.GameConfig = {
       debug: true,
     },
   },
-  scene: RoomScene,
+  // scene: RoomScene,
+  scene: [RoomScene, HUDScene],
   render: {
     pixelArt: true,
   },
