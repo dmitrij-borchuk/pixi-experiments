@@ -87,3 +87,12 @@ export function applyCameraToSprite(scene: Scene, sprite: Phaser.Physics.Arcade.
 export function getTileFomCoords(tileW: number, tileH: number, x: number, y: number) {
   return [Math.floor((x + tileW / 2) / tileW), Math.floor((y + tileH / 2) / tileH)]
 }
+
+export function saveGame<T>(key: string, data: T) {
+  localStorage.setItem(key, JSON.stringify(data))
+}
+
+export function loadGame<T extends any>(key: string) {
+  const data = localStorage.getItem(key)
+  return !data ? null : (JSON.parse(data) as T)
+}

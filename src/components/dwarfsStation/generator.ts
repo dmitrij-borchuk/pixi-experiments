@@ -1,3 +1,5 @@
+import { GameState } from './types'
+
 export interface ObjectInstanceConfig {
   id: string
   state: 'kit' | 'constructed'
@@ -5,7 +7,7 @@ export interface ObjectInstanceConfig {
   position: [number, number]
 }
 
-export function generateInitialStructure() {
+export function generateInitialStructure(): GameState {
   return {
     world: {
       x: 0,
@@ -15,14 +17,16 @@ export function generateInitialStructure() {
     },
     player: {
       position: [50, 50] as [number, number],
+      backpack: [],
+      belt: [],
     },
-    objects: [
-      {
+    map: {
+      '51|51': {
+        kind: 'lying',
         id: 'frame',
-        state: 'kit',
         amount: 20,
         position: [52, 52],
       },
-    ],
+    },
   }
 }
