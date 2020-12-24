@@ -25,7 +25,13 @@ export function generateInitialStructure(): GameState {
         kind: 'lying',
         id: 'frame',
         amount: 20,
-        position: [52, 52],
+        position: [51, 51],
+      },
+      '49|49': {
+        kind: 'lying',
+        id: 'crate',
+        amount: 1,
+        position: [49, 49],
       },
     },
   }

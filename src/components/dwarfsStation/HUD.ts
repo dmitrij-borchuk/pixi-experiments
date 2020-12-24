@@ -43,26 +43,33 @@ export class HUDScene extends Phaser.Scene {
 
     this.makeBackpackContainer()
 
-    this.makeBelt()
+    this.drawBelt()
 
     this.input.on('drag', (pointer: Phaser.Input.Pointer, gameObject: any, dragX: number, dragY: number) => {
       gameObject.x = dragX
       gameObject.y = dragY
     })
-    this.input.on('dragend', (pointer: Phaser.Input.Pointer, gameObject: any, dragX: number, dragY: number) => {
-      const [firstHit] = this.input.manager.hitTest(
-        pointer,
-        this.beltContent.getAll(),
-        this.cameras.main
-      ) as Phaser.GameObjects.Image[]
-      const index = firstHit.getData('index')
-      this.belt[index] = {
-        id: gameObject.getData('id'),
-        amount: gameObject.getData('amount'),
-      }
-      gameObject.destroy()
-      this.makeBelt()
+    this.input.on('dragend', this.onDrop.bind(this))
+  }
+
+  private onDrop(pointer: Phaser.Input.Pointer, gameObject: any, dragX: number, dragY: number) {
+    const [firstHit] = this.input.manager.hitTest(
+      pointer,
+      this.beltContent.getAll(),
+      this.cameras.main
+    ) as Phaser.GameObjects.Image[]
+    const index = firstHit.getData('index')
+    this.belt[index] = {
+      id: gameObject.getData('id'),
+      amount: gameObject.getData('amount'),
+    }
+    gameObject.destroy()
+    this.events.emit('beltSlotDropped', {
+      item: this.belt[index],
+      index,
     })
+
+    this.drawBelt()
   }
 
   private makeBackpackContainer(list?: ObjectInstanceDescriptor[]) {
@@ -126,7 +133,7 @@ export class HUDScene extends Phaser.Scene {
     this.backpackContent.setVisible(true)
   }
 
-  private makeBelt() {
+  private drawBelt() {
     if (this.beltContent) {
       this.beltContent.destroy()
     }
@@ -156,13 +163,21 @@ export class HUDScene extends Phaser.Scene {
         obj.setData('amount', descriptor.amount)
         obj.setData('id', descriptor.id)
         this.beltContent.add(obj)
-
-        slot.on('pointerdown', () => this.onBeltSlotClick(i))
       }
+      slot.on('pointerdown', () => this.onBeltSlotClick(i))
     }
   }
 
   private onBeltSlotClick(index: number) {
     this.events.emit('beltSlotClick', this.belt[index])
+  }
+
+  public getBelt() {
+    return this.belt
+  }
+
+  public setBelt(belt: ObjectInstanceDescriptor[]) {
+    this.belt = belt
+    this.drawBelt()
   }
 }

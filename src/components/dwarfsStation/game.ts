@@ -55,11 +55,12 @@ export class MainScene extends Scene {
     this.textures.addBase64(TEXTURES.player, name2texture.player)
     this.textures.addBase64(TEXTURES.frame, name2texture.frame)
     this.textures.addBase64(TEXTURES.ironPlate, name2texture.ironPlate)
+    this.textures.addBase64(TEXTURES.crate, name2texture.crate)
   }
   create() {
-    // TODO: fill backpack and belt
     const initialData = this.loadState()
     this.world = initialData.world
+    this.map = initialData.map
     const worldSize = initialData.world
     this.lyingObjects = new Phaser.GameObjects.Group(this)
     this.constructedObjects = this.physics.add.staticGroup()
@@ -129,7 +130,8 @@ export class MainScene extends Scene {
   }
 
   private addPlayer(player: PlayerState) {
-    const { position } = player
+    // TODO: fill backpack and belt
+    const { position, backpack, belt } = player
     const [x, y] = position
     const scale = 0.5
     const playerGroup = this.physics.add.group({ classType: Player, runChildUpdate: true })
@@ -140,6 +142,10 @@ export class MainScene extends Scene {
       .setCollideWorldBounds(true)
       .setDrag(3000)
     this.player = playerInstance
+
+    backpack.forEach((item) => playerInstance.addToContainer(item))
+    const hud = this.scene.get('HUDScene') as HUDScene
+    hud.setBelt(belt)
 
     const { onUpdate } = applyMovement(this, this.player)
     this.onUpdateListeners.push(onUpdate)
@@ -242,20 +248,21 @@ export class MainScene extends Scene {
         }
         this.player.addToContainer(obj)
         // TODO: it could be animated with flying to player and scaling to 0
+        // TODO: remove from the `map`
         firstHit.destroy()
       }
     }
   }
 
   private saveState() {
+    const hud = this.scene.get('HUDScene') as HUDScene
     const [x, y] = getTileFomCoords(tileSize, tileSize, this.player.body.x, this.player.body.y)
     saveGame<GameState>('ds1', {
       map: this.map,
       player: {
         position: [x, y],
         backpack: this.player.getContent(),
-        // TODO
-        belt: [],
+        belt: hud.getBelt(),
       },
       world: this.world,
     })
