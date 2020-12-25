@@ -3,6 +3,7 @@ import {
   applyCameraToSprite,
   applyCollider,
   applyMovement,
+  getFirstHit,
   getTileFomCoords,
   loadGame,
   saveGame,
@@ -13,7 +14,7 @@ import { Player } from './Player'
 import { name2texture, TEXTURES } from './textures'
 import { objectsConfig } from './objectsConfig'
 import { HUDScene } from './HUD'
-import { GameState, LyingObject, ObjectConfig, ObjectInstanceDescriptor, PlayerState } from './types'
+import { GameState, StuffObject, ObjectConfig, ObjectInstanceDescriptor, PlayerState, ConstructedObject } from './types'
 
 const tileSize = 120
 const maxDistanceToInteract = tileSize * 2
@@ -23,7 +24,11 @@ function getMapKey(x: number, y: number) {
   return `${x}${keySeparator}${y}`
 }
 function parseMapKey(key: string) {
-  return key.split(keySeparator)
+  return key.split(keySeparator).map((str) => parseInt(str, 10))
+}
+
+function isInteractive(constructorConfig: ObjectConfig) {
+  return constructorConfig.isContainer
 }
 
 // TODO: add loading
@@ -88,10 +93,7 @@ export class MainScene extends Scene {
 
     this.makeInitialStructure(initialData.map)
 
-    this.addMouseEvents()
-
-    const hud = this.scene.get('HUDScene') as HUDScene
-    hud.events.on('beltSlotClick', this.onBeltSlotClick.bind(this))
+    this.addEvents()
   }
   update(time: number, delta: number) {
     this.onUpdateListeners.forEach((cb) => {
@@ -157,23 +159,17 @@ export class MainScene extends Scene {
       const config = map[key]
       const constructorConfig = objectsConfig[config.id]
       if (constructorConfig) {
-        if (config.kind === 'lying') {
-          const {
-            position: [x, y],
-          } = config
-
+        const [x, y] = parseMapKey(key)
+        if (config.kind === 'stuff') {
           this.placeObject(constructorConfig, config, x, y)
         } else {
-          const {
-            position: [x, y],
-          } = config
-          this.placeConstruction(constructorConfig, x, y)
+          this.placeConstruction(constructorConfig, config, x, y)
         }
       }
     })
   }
 
-  private addMouseEvents() {
+  private addEvents() {
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       // TODO: check if left mouse click
       if (this.currentTool) {
@@ -189,26 +185,51 @@ export class MainScene extends Scene {
         this.useLyingObject(pointer)
       }
     })
+
+    // Belt events
+    const hud = this.scene.get('HUDScene') as HUDScene
+    hud.events.on('beltSlotClick', this.onBeltSlotClick.bind(this))
+
+    this.input.keyboard.on('keyup_E', this.onUsePressed.bind(this))
+  }
+
+  private onUsePressed(event: KeyboardEvent) {
+    // TODO: probably need to be used on all objects
+    const hit = getFirstHit(this, this.input.activePointer, this.constructedObjects.getChildren())
+
+    if (hit) {
+      const id = hit.getData('id')
+      const config: ConstructedObject = hit.getData('config')
+      // TODO: Check distance
+      const constructorConfig = objectsConfig[id]
+
+      if (!constructorConfig) {
+        return
+      }
+
+      if (constructorConfig.isContainer) {
+        const hud = this.scene.get('HUDScene') as HUDScene
+        hud.showContainer(config.data.content)
+      }
+    }
   }
 
   private buildObject(constructorConfig: ObjectConfig, x: number, y: number) {
     if (!this.map[getMapKey(x, y)]) {
-      this.map[getMapKey(x, y)] = {
-        kind: 'constructed',
+      const data: ConstructedObject = {
+        kind: 'construction',
         angle: 0,
         health: constructorConfig.maxHealth || 0,
         id: constructorConfig.id,
-        position: [x, y],
         step: 0,
       }
-
-      this.placeConstruction(constructorConfig, x, y)
-
+      this.map[getMapKey(x, y)] = data
+      this.placeConstruction(constructorConfig, data, x, y)
       this.saveState()
     }
   }
 
-  private placeConstruction(constructorConfig: ObjectConfig, x: number, y: number) {
+  private placeConstruction(constructorConfig: ObjectConfig, config: ConstructedObject, x: number, y: number) {
     const obj: Phaser.Physics.Arcade.Image = this.constructedObjects.create(
       x * tileSize,
       y * tileSize,
@@ -217,11 +238,15 @@ export class MainScene extends Scene {
     obj.setDisplaySize(tileSize, tileSize)
     obj.setData('id', constructorConfig.id)
     obj.setData('step', 0)
+    obj.setData('config', config)
     obj.refreshBody()
+    if (isInteractive(constructorConfig)) {
+      obj.setInteractive()
+    }
     applyCollider(this, this.player, obj)
   }
 
-  private placeObject(constructorConfig: ObjectConfig, config: LyingObject, x: number, y: number) {
+  private placeObject(constructorConfig: ObjectConfig, config: StuffObject, x: number, y: number) {
     const { amount, id } = config
     const size = tileSize / 2
     const obj: Phaser.GameObjects.Image = this.lyingObjects.create(x * tileSize, y * tileSize, constructorConfig.view)
@@ -288,7 +313,7 @@ const config: Phaser.Types.Core.GameConfig = {
     default: 'arcade',
     arcade: {
       gravity: { y: 0 },
-      debug: true,
+      // debug: true,
     },
   },
   scene: [MainScene, HUDScene],

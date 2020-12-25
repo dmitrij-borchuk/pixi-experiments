@@ -1,12 +1,5 @@
 import { GameState } from './types'
 
-export interface ObjectInstanceConfig {
-  id: string
-  state: 'kit' | 'constructed'
-  amount: number
-  position: [number, number]
-}
-
 export function generateInitialStructure(): GameState {
   return {
     world: {
@@ -22,16 +15,25 @@ export function generateInitialStructure(): GameState {
     },
     map: {
       '51|51': {
-        kind: 'lying',
+        kind: 'stuff',
         id: 'frame',
         amount: 20,
-        position: [51, 51],
       },
       '49|49': {
-        kind: 'lying',
+        kind: 'construction',
         id: 'crate',
-        amount: 1,
-        position: [49, 49],
+        angle: 0,
+        health: 100,
+        step: 0,
+        data: {
+          content: [
+            {
+              kind: 'stuff',
+              id: 'ironPlate',
+              amount: 20,
+            },
+          ],
+        },
       },
     },
   }

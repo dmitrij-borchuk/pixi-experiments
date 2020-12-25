@@ -96,3 +96,15 @@ export function loadGame<T extends any>(key: string) {
   const data = localStorage.getItem(key)
   return !data ? null : (JSON.parse(data) as T)
 }
+
+export function getFirstHit<T>(
+  scene: Scene,
+  pointer: Phaser.Input.Pointer,
+  gameObjects: T[],
+  camera?: Phaser.Cameras.Scene2D.Camera
+): T | undefined {
+  const currentCamera = camera || scene.cameras.main
+  const [firstHit] = scene.input.manager.hitTest(pointer, gameObjects, currentCamera) as T[]
+
+  return firstHit
+}

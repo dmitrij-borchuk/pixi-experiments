@@ -31,12 +31,12 @@ export interface ObjectInstanceDescriptor {
 export type Position = [number, number]
 
 export interface ConstructedObject {
-  kind: 'constructed'
+  kind: 'construction'
   id: string
   step: number
   angle: number
   health: number
-  position: Position
+  data?: any
 }
 
 export interface PlayerState {
@@ -45,11 +45,10 @@ export interface PlayerState {
   belt: ObjectInstanceDescriptor[]
 }
 
-export interface LyingObject {
-  kind: 'lying'
+export interface StuffObject {
+  kind: 'stuff'
   id: string
   amount: number
-  position: Position
 }
 
 export interface GameState {
@@ -59,6 +58,6 @@ export interface GameState {
     h: number
     w: number
   }
-  map: Record<string, ConstructedObject | LyingObject>
+  map: Record<string, ConstructedObject | StuffObject>
   player: PlayerState
 }

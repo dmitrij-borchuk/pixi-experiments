@@ -3,9 +3,14 @@ import { MainScene } from './game'
 import { ObjectInstanceDescriptor } from './types'
 import { objectsConfig } from './objectsConfig'
 
+type ContainerPosition = 'left' | 'right'
+const Z_INDEX = {
+  UI: 90,
+  CONTAINER: 100,
+}
 export class HUDScene extends Phaser.Scene {
   private toolBox!: Phaser.GameObjects.Container
-  private backpackContent!: Phaser.GameObjects.Container
+  private container!: Phaser.GameObjects.Container
   private beltContent!: Phaser.GameObjects.Container
 
   private belt: ObjectInstanceDescriptor[] = []
@@ -37,11 +42,12 @@ export class HUDScene extends Phaser.Scene {
     backpackSlot.setDisplaySize(113, cellHeight)
     backpackSlot.setScrollFactor(0)
     backpackSlot.setInteractive()
-    backpackSlot.depth = 90
+    backpackSlot.depth = Z_INDEX.UI
     this.toolBox.add(backpackSlot)
     backpackSlot.on('pointerdown', this.onBackpackClick.bind(this))
 
-    this.makeBackpackContainer()
+    this.createContainer()
+    this.drawBackpackContainer()
 
     this.drawBelt()
 
@@ -49,6 +55,7 @@ export class HUDScene extends Phaser.Scene {
       gameObject.x = dragX
       gameObject.y = dragY
     })
+    // TODO: try `this.input.on('drop', listener)` https://photonstorm.github.io/phaser3-docs/Phaser.Input.Events.html#event:DROP__anchor
     this.input.on('dragend', this.onDrop.bind(this))
   }
 
@@ -58,6 +65,10 @@ export class HUDScene extends Phaser.Scene {
       this.beltContent.getAll(),
       this.cameras.main
     ) as Phaser.GameObjects.Image[]
+    if (!firstHit) {
+      // TODO: return object back
+      return
+    }
     const index = firstHit.getData('index')
     this.belt[index] = {
       id: gameObject.getData('id'),
@@ -72,65 +83,21 @@ export class HUDScene extends Phaser.Scene {
     this.drawBelt()
   }
 
-  private makeBackpackContainer(list?: ObjectInstanceDescriptor[]) {
-    if (this.backpackContent) {
-      this.backpackContent.destroy()
+  private drawBackpackContainer(list?: ObjectInstanceDescriptor[]) {
+    if (this.container) {
+      this.container.removeAll(true)
     }
-    const { displayHeight, displayWidth } = this.cameras.main
-    // TODO: close on `esc`
-    const uiMaxSize = 0.7
-    this.backpackContent = this.add.container(displayWidth / 2, displayHeight / 2)
-    this.backpackContent.setVisible(false)
 
-    const bg = this.add.rectangle(0, 0, displayWidth * uiMaxSize, displayHeight * uiMaxSize, 0x6666ff)
-    this.backpackContent.add(bg)
-    const bgLeft = -(bg.width / 2)
-    const bgTop = -(bg.height / 2)
-
-    const closeSize = 50
-    const close = this.add.rectangle(
-      bg.width / 2 - closeSize / 2,
-      bgTop + closeSize / 2,
-      closeSize,
-      closeSize,
-      0x555555
-    )
-    this.backpackContent.add(close)
-    close.setInteractive()
-    close.on('pointerdown', () => this.backpackContent.setVisible(false))
-
-    const tileSize = 60
-    list?.forEach((item, i) => {
-      const { id, amount } = item
-
-      const constructorConfig = objectsConfig[id]
-
-      if (constructorConfig) {
-        let size = tileSize * 0.9
-        // TODO: make line wrap
-        const x = bgLeft + i * tileSize + tileSize / 2
-        const y = bgTop + closeSize + tileSize / 2
-        const obj: Phaser.GameObjects.Image = this.add.image(x, y, constructorConfig.view)
-        obj.setDisplaySize(size, size)
-        obj.setData('amount', amount)
-        obj.setData('id', id)
-        obj.setInteractive()
-
-        this.input.setDraggable(obj)
-
-        // TODO: add amount text
-        this.backpackContent.add(obj)
-      }
-    })
+    this.drawContainer('left', list)
   }
 
   private onBackpackClick() {
     // TODO: use constant
     const mainScene = this.scene.get('mainScene') as MainScene
     const content = mainScene.player.getContent()
-    this.makeBackpackContainer(content)
+    this.drawBackpackContainer(content)
 
-    this.backpackContent.setVisible(true)
+    this.container.setVisible(true)
   }
 
   private drawBelt() {
@@ -150,7 +117,7 @@ export class HUDScene extends Phaser.Scene {
       slot.setDisplaySize(cellWidth, cellHeight)
       slot.setScrollFactor(0)
       slot.setInteractive()
-      slot.depth = 90
+      slot.depth = Z_INDEX.UI
       slot.setData('index', i)
       this.beltContent.add(slot)
 
@@ -172,6 +139,62 @@ export class HUDScene extends Phaser.Scene {
     this.events.emit('beltSlotClick', this.belt[index])
   }
 
+  private createContainer() {
+    // TODO: close on `esc`
+    const { displayHeight, displayWidth } = this.cameras.main
+    const uiMaxSize = 0.7
+    const x = (displayWidth * (1 - uiMaxSize)) / 2
+    const y = (displayHeight * (1 - uiMaxSize)) / 2
+    this.container = this.add.container(x, y)
+    this.container.setVisible(false)
+    this.container.depth = Z_INDEX.CONTAINER
+  }
+
+  private drawContainer(position: ContainerPosition = 'left', list?: ObjectInstanceDescriptor[]) {
+    const { displayHeight, displayWidth } = this.cameras.main
+    const uiMaxSize = 0.7
+    const containerWidth = displayWidth * uiMaxSize
+    const containerHeight = displayHeight * uiMaxSize
+    const x = position === 'left' ? 0 : containerWidth / 2
+
+    const bg = this.add.rectangle(x, 0, containerWidth / 2, containerHeight, 0x6666ff)
+    bg.setOrigin(0, 0)
+    this.container.add(bg)
+    const bgLeft = x
+    const bgTop = 0
+
+    const closeSize = 50
+    const close = this.add.rectangle(bg.width - closeSize, bgTop, closeSize, closeSize, 0x555555)
+    close.setOrigin(0, 0)
+    close.setInteractive()
+    close.on('pointerdown', () => this.container.setVisible(false))
+    this.container.add(close)
+
+    const tileSize = 60
+    list?.forEach((item, i) => {
+      const { id, amount } = item
+
+      const constructorConfig = objectsConfig[id]
+
+      if (constructorConfig) {
+        let size = tileSize * 0.9
+        // TODO: make line wrap
+        const x = bgLeft + i * tileSize + tileSize / 2
+        const y = bgTop + closeSize + tileSize / 2
+        const obj: Phaser.GameObjects.Image = this.add.image(x, y, constructorConfig.view)
+        obj.setDisplaySize(size, size)
+        obj.setData('amount', amount)
+        obj.setData('id', id)
+        obj.setInteractive()
+
+        this.input.setDraggable(obj)
+
+        // TODO: add amount text
+        this.container.add(obj)
+      }
+    })
+  }
+
   public getBelt() {
     return this.belt
   }
@@ -179,5 +202,16 @@ export class HUDScene extends Phaser.Scene {
   public setBelt(belt: ObjectInstanceDescriptor[]) {
     this.belt = belt
     this.drawBelt()
+  }
+
+  public showContainer(list: ObjectInstanceDescriptor[] = []) {
+    if (this.container) {
+      this.container.removeAll(true)
+    }
+    const mainScene = this.scene.get('mainScene') as MainScene
+    const content = mainScene.player.getContent()
+    this.drawContainer('left', content)
+    this.drawContainer('right', list)
+    this.container.setVisible(true)
   }
 }
