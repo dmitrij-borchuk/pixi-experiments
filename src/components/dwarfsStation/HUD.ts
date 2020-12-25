@@ -45,7 +45,7 @@ export class HUDScene extends Phaser.Scene {
     backpackSlot.setInteractive()
     backpackSlot.depth = Z_INDEX.UI
     this.toolBox.add(backpackSlot)
-    backpackSlot.on('pointerdown', this.onBackpackClick.bind(this))
+    backpackSlot.on('pointerdown', this.openBackpack.bind(this))
 
     this.createContainer()
     this.drawBackpackContainer()
@@ -68,7 +68,7 @@ export class HUDScene extends Phaser.Scene {
   }
 
   private onDrop(pointer: Phaser.Input.Pointer, gameObject: any) {
-    console.log('=-= pointer', pointer)
+    // TODO: redraw containers
     const [firstHit] = this.input.manager.hitTest(
       pointer,
       this.beltContent.getAll(),
@@ -104,7 +104,7 @@ export class HUDScene extends Phaser.Scene {
     this.drawContainer('left', list)
   }
 
-  private onBackpackClick() {
+  private openBackpack() {
     const mainScene = this.scene.get(SCENES.MAIN) as MainScene
     const content = mainScene.player.getContent()
     this.drawBackpackContainer(content)
@@ -195,16 +195,19 @@ export class HUDScene extends Phaser.Scene {
         const x = bgLeft + row * tileSize + tileSize / 2
         const topOffset = bgTop + closeSize + tileSize / 2
         const y = topOffset + line * tileSize
-        const obj: Phaser.GameObjects.Image = this.add.image(x, y, constructorConfig.view)
+        const obj: Phaser.GameObjects.Image = this.add.image(0, 0, constructorConfig.view)
         obj.setDisplaySize(size, size)
-        obj.setData('amount', amount)
-        obj.setData('id', id)
-        obj.setInteractive()
 
-        this.input.setDraggable(obj)
+        const amountText = this.add.text(0, 0, amount.toString())
+        amountText.setOrigin(1, 0)
 
-        // TODO: add amount text
-        this.container.add(obj)
+        const itemContainer = this.add.container(x, y, [obj, amountText])
+        itemContainer.setSize(size, size)
+        itemContainer.setInteractive()
+        itemContainer.setData('amount', amount)
+        itemContainer.setData('id', id)
+        this.input.setDraggable(itemContainer)
+        this.container.add(itemContainer)
       }
     })
   }
