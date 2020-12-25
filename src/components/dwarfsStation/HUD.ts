@@ -55,18 +55,25 @@ export class HUDScene extends Phaser.Scene {
       gameObject.x = dragX
       gameObject.y = dragY
     })
-    // TODO: try `this.input.on('drop', listener)` https://photonstorm.github.io/phaser3-docs/Phaser.Input.Events.html#event:DROP__anchor
+    this.input.on('dragstart', (pointer: Phaser.Input.Pointer, gameObject: any, dragX: number, dragY: number) => {
+      gameObject.setData('dragStart', [gameObject.x, gameObject.y])
+    })
     this.input.on('dragend', this.onDrop.bind(this))
   }
 
-  private onDrop(pointer: Phaser.Input.Pointer, gameObject: any, dragX: number, dragY: number) {
+  private onDrop(pointer: Phaser.Input.Pointer, gameObject: any) {
+    console.log('=-= pointer', pointer)
     const [firstHit] = this.input.manager.hitTest(
       pointer,
       this.beltContent.getAll(),
       this.cameras.main
     ) as Phaser.GameObjects.Image[]
     if (!firstHit) {
-      // TODO: return object back
+      const [x, y] = gameObject.getData('dragStart')
+      gameObject.setData('dragStart', null)
+      gameObject.x = x
+      gameObject.y = y
+
       return
     }
     const index = firstHit.getData('index')

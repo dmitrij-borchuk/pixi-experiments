@@ -1,0 +1,31 @@
+{
+  "id": "frame",
+  "displayNameKey": "frame",
+  "defaultDisplayName": "Frame",
+  "isContainer": false,
+  "view": "frame",
+  "isDroppable": true,
+  "isBuildable": true,
+  "stack": 50,
+  "buildProps": {
+    "isSolid": true,
+    "buildSteps": [
+      {
+        "gasOpaque": true,
+        "lightOpaque": true
+      },
+      {
+        "toMake": {
+          "ingredients": [
+            {
+              "name": "ironPlate",
+              "amount": 1
+            }
+          ]
+        },
+        "gasOpaque": false,
+        "lightOpaque": false
+      }
+    ]
+  }
+}

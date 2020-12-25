@@ -123,7 +123,7 @@ export class MainScene extends Scene {
 
     const constructorConfig = descriptor && objectsConfig[descriptor.id]
 
-    if (constructorConfig) {
+    if (constructorConfig && constructorConfig.isBuildable) {
       this.buildPreview = this.add.image(0, 0, constructorConfig.view)
       this.buildPreview.setDisplaySize(tileSize, tileSize)
       this.buildPreview.setTint(0x55ff55, 0x55ff55, 0x55ff55, 0x55ff55)
@@ -176,7 +176,7 @@ export class MainScene extends Scene {
         // TODO: Check distance
         const constructorConfig = objectsConfig[this.currentTool.id]
 
-        if (constructorConfig) {
+        if (constructorConfig && constructorConfig.isBuildable) {
           const { worldX, worldY } = pointer
           const [x, y] = getTileFomCoords(tileSize, tileSize, worldX, worldY)
           this.buildObject(constructorConfig, x, y)
