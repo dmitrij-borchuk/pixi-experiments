@@ -15,6 +15,7 @@ import { name2texture, TEXTURES } from './textures'
 import { objectsConfig } from './objectsConfig'
 import { HUDScene } from './HUD'
 import { GameState, StuffObject, ObjectConfig, ObjectInstanceDescriptor, PlayerState, ConstructedObject } from './types'
+import { SCENES } from './constants'
 
 const tileSize = 120
 const maxDistanceToInteract = tileSize * 2
@@ -48,7 +49,7 @@ export class MainScene extends Scene {
   private world!: GameState['world']
 
   constructor() {
-    super('mainScene')
+    super(SCENES.MAIN)
   }
   preload() {
     // Load in images and sprites

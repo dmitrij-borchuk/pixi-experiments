@@ -2,6 +2,7 @@ import { name2texture, TEXTURES } from './textures'
 import { MainScene } from './game'
 import { ObjectInstanceDescriptor } from './types'
 import { objectsConfig } from './objectsConfig'
+import { SCENES } from './constants'
 
 type ContainerPosition = 'left' | 'right'
 const Z_INDEX = {
@@ -16,7 +17,7 @@ export class HUDScene extends Phaser.Scene {
   private belt: ObjectInstanceDescriptor[] = []
 
   constructor() {
-    super({ key: 'HUDScene', active: true })
+    super({ key: SCENES.HUD, active: true })
   }
 
   preload() {
@@ -51,6 +52,10 @@ export class HUDScene extends Phaser.Scene {
 
     this.drawBelt()
 
+    this.attachEvents()
+  }
+
+  private attachEvents() {
     this.input.on('drag', (pointer: Phaser.Input.Pointer, gameObject: any, dragX: number, dragY: number) => {
       gameObject.x = dragX
       gameObject.y = dragY
@@ -59,6 +64,7 @@ export class HUDScene extends Phaser.Scene {
       gameObject.setData('dragStart', [gameObject.x, gameObject.y])
     })
     this.input.on('dragend', this.onDrop.bind(this))
+    this.input.keyboard.on('keyup_ESC', this.closeContainer.bind(this))
   }
 
   private onDrop(pointer: Phaser.Input.Pointer, gameObject: any) {
@@ -99,8 +105,7 @@ export class HUDScene extends Phaser.Scene {
   }
 
   private onBackpackClick() {
-    // TODO: use constant
-    const mainScene = this.scene.get('mainScene') as MainScene
+    const mainScene = this.scene.get(SCENES.MAIN) as MainScene
     const content = mainScene.player.getContent()
     this.drawBackpackContainer(content)
 
@@ -153,7 +158,7 @@ export class HUDScene extends Phaser.Scene {
     const x = (displayWidth * (1 - uiMaxSize)) / 2
     const y = (displayHeight * (1 - uiMaxSize)) / 2
     this.container = this.add.container(x, y)
-    this.container.setVisible(false)
+    this.closeContainer()
     this.container.depth = Z_INDEX.CONTAINER
   }
 
@@ -174,7 +179,7 @@ export class HUDScene extends Phaser.Scene {
     const close = this.add.rectangle(bg.width - closeSize, bgTop, closeSize, closeSize, 0x555555)
     close.setOrigin(0, 0)
     close.setInteractive()
-    close.on('pointerdown', () => this.container.setVisible(false))
+    close.on('pointerdown', this.closeContainer.bind(this))
     this.container.add(close)
 
     const tileSize = 60
@@ -200,6 +205,10 @@ export class HUDScene extends Phaser.Scene {
         this.container.add(obj)
       }
     })
+  }
+
+  private closeContainer() {
+    this.container.setVisible(false)
   }
 
   public getBelt() {
