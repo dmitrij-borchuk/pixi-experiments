@@ -25,7 +25,7 @@ export interface ObjectConfig {
 
 export interface ObjectInstanceDescriptor {
   id: string
-  amount: string
+  amount: number
 }
 
 export type Position = [number, number]

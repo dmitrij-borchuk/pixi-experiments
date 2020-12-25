@@ -152,7 +152,6 @@ export class HUDScene extends Phaser.Scene {
   }
 
   private createContainer() {
-    // TODO: close on `esc`
     const { displayHeight, displayWidth } = this.cameras.main
     const uiMaxSize = 0.7
     const x = (displayWidth * (1 - uiMaxSize)) / 2
@@ -190,9 +189,12 @@ export class HUDScene extends Phaser.Scene {
 
       if (constructorConfig) {
         let size = tileSize * 0.9
-        // TODO: make line wrap
-        const x = bgLeft + i * tileSize + tileSize / 2
-        const y = bgTop + closeSize + tileSize / 2
+        const itemsInLine = Math.floor(bg.width / tileSize)
+        const line = Math.floor(i / itemsInLine)
+        const row = i - itemsInLine * line
+        const x = bgLeft + row * tileSize + tileSize / 2
+        const topOffset = bgTop + closeSize + tileSize / 2
+        const y = topOffset + line * tileSize
         const obj: Phaser.GameObjects.Image = this.add.image(x, y, constructorConfig.view)
         obj.setDisplaySize(size, size)
         obj.setData('amount', amount)
