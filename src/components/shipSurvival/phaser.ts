@@ -1,5 +1,5 @@
 import Phaser, { Scene } from 'phaser'
-import { getRoom, IRoom, IPoint } from '../../utils/roomGenerator'
+// import { getRoom, IRoom, IPoint } from '../../utils/roomGenerator'
 import wall from './assets/wall1.png'
 import life from '../../assets/life.png'
 import stoneFloor from './assets/stoneFloor.jpg'
@@ -15,7 +15,7 @@ import laserGun from './assets/laserGun.png'
 // import ship from './ship.json'
 import { constrainReticle, constrainVelocity, getVelocityTo, getWorldSize, isUsable } from './utils'
 import { Bullet } from './Bullet'
-import { generateShip, generateStation } from '../../utils/scifiGenerator'
+import { generateStation } from '../../utils/scifiGenerator'
 import { Gun } from './Gun'
 import { Spawner } from './Spawner'
 
@@ -109,12 +109,12 @@ export class RoomScene extends Scene {
     this.reticle.depth = 100
 
     // ===================================================
-    const roomData = getRoom({
-      minWidth: 12,
-      maxWidth: 25,
-      minHeight: 12,
-      maxHeight: 25,
-    })
+    // const roomData = getRoom({
+    //   minWidth: 12,
+    //   maxWidth: 25,
+    //   minHeight: 12,
+    //   maxHeight: 25,
+    // })
 
     // const walls = addRoom(this.physics, roomData)
 

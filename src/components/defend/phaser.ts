@@ -1,5 +1,5 @@
-import Phaser, { Scene } from 'phaser'
-import { getRoom, IRoom, IPoint } from '../../utils/roomGenerator'
+import Phaser from 'phaser'
+// import { getRoom, IRoom, IPoint } from '../../utils/roomGenerator'
 import bunnyImg from '../../assets/bunny.png'
 import wall from './assets/wall.png'
 import floor from './assets/floor.png'
@@ -11,46 +11,46 @@ import drone1 from './assets/drone1.png'
 import laserBullet from './assets/laserBullet.png'
 import toolbarCell from './assets/toolbarCell.png'
 
-const isSamePoints = (p1: IPoint, p2: IPoint) => {
-  return p1.x === p2.x && p1.y === p2.y
-}
+// const isSamePoints = (p1: IPoint, p2: IPoint) => {
+//   return p1.x === p2.x && p1.y === p2.y
+// }
 
 const tileSize = 120
-const createWall = (container: any, x: number, y: number) => {
-  container.create(x, y, 'wall').setDisplaySize(tileSize, tileSize).refreshBody()
-}
+// const createWall = (container: any, x: number, y: number) => {
+//   container.create(x, y, 'wall').setDisplaySize(tileSize, tileSize).refreshBody()
+// }
 
-const addRoom = (physics: any, room: IRoom) => {
-  const walls = physics.add.staticGroup()
-  for (let i = 0; i < room.width; i++) {
-    if (!isSamePoints(room.enter, { x: i, y: 0 }) && !isSamePoints(room.exit, { x: i, y: 0 })) {
-      createWall(walls, i * tileSize, 0)
-    }
-    if (
-      !isSamePoints(room.enter, { x: i, y: room.height - 1 }) &&
-      !isSamePoints(room.exit, { x: i, y: room.height - 1 })
-    ) {
-      createWall(walls, i * tileSize, (room.height - 1) * tileSize)
-    }
-  }
-  for (let i = 1; i < room.height - 1; i++) {
-    if (!isSamePoints(room.enter, { x: 0, y: i }) && !isSamePoints(room.exit, { x: 0, y: i })) {
-      createWall(walls, 0, i * tileSize)
-    }
-    if (
-      !isSamePoints(room.enter, { x: room.width - 1, y: i }) &&
-      !isSamePoints(room.exit, { x: room.width - 1, y: i })
-    ) {
-      createWall(walls, (room.width - 1) * tileSize, i * tileSize)
-    }
-  }
+// const addRoom = (physics: any, room: IRoom) => {
+//   const walls = physics.add.staticGroup()
+//   for (let i = 0; i < room.width; i++) {
+//     if (!isSamePoints(room.enter, { x: i, y: 0 }) && !isSamePoints(room.exit, { x: i, y: 0 })) {
+//       createWall(walls, i * tileSize, 0)
+//     }
+//     if (
+//       !isSamePoints(room.enter, { x: i, y: room.height - 1 }) &&
+//       !isSamePoints(room.exit, { x: i, y: room.height - 1 })
+//     ) {
+//       createWall(walls, i * tileSize, (room.height - 1) * tileSize)
+//     }
+//   }
+//   for (let i = 1; i < room.height - 1; i++) {
+//     if (!isSamePoints(room.enter, { x: 0, y: i }) && !isSamePoints(room.exit, { x: 0, y: i })) {
+//       createWall(walls, 0, i * tileSize)
+//     }
+//     if (
+//       !isSamePoints(room.enter, { x: room.width - 1, y: i }) &&
+//       !isSamePoints(room.exit, { x: room.width - 1, y: i })
+//     ) {
+//       createWall(walls, (room.width - 1) * tileSize, i * tileSize)
+//     }
+//   }
 
-  return walls
-}
+//   return walls
+// }
 
-const addExit = (physics: Phaser.Physics.Arcade.ArcadePhysics, x: number, y: number) => {
-  return physics.add.staticSprite(x, y, 'door').setDisplaySize(tileSize, tileSize).refreshBody()
-}
+// const addExit = (physics: Phaser.Physics.Arcade.ArcadePhysics, x: number, y: number) => {
+//   return physics.add.staticSprite(x, y, 'door').setDisplaySize(tileSize, tileSize).refreshBody()
+// }
 
 // Ensures sprite speed doesnt exceed maxVelocity while update is called
 function constrainVelocity(sprite: any, maxVelocity: any) {
@@ -236,12 +236,12 @@ class RoomScene extends Phaser.Scene {
     this.reticle.depth = 100
 
     // ===================================================
-    const roomData = getRoom({
-      minWidth: 12,
-      maxWidth: 25,
-      minHeight: 12,
-      maxHeight: 25,
-    })
+    // const roomData = getRoom({
+    //   minWidth: 12,
+    //   maxWidth: 25,
+    //   minHeight: 12,
+    //   maxHeight: 25,
+    // })
 
     // const walls = addRoom(this.physics, roomData)
 

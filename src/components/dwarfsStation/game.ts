@@ -6,6 +6,7 @@ import {
   getFirstHit,
   getTileFomCoords,
   loadGame,
+  preloadAssets,
   saveGame,
 } from '../../utils/gameUtils'
 import { generateInitialStructure } from './generator'
@@ -52,18 +53,36 @@ export class MainScene extends Scene {
     super(SCENES.MAIN)
   }
   preload() {
-    // Load in images and sprites
-
-    // TODO: fix loading problem
-    // if you remove next line other textures will not load on start
-    // looks like we need to use `this.textures.on('onload', (name: string) => {})`
-    this.load.image(TEXTURES.stoneFloor, name2texture.stoneFloor)
-    this.textures.addBase64(TEXTURES.player, name2texture.player)
-    this.textures.addBase64(TEXTURES.frame, name2texture.frame)
-    this.textures.addBase64(TEXTURES.ironPlate, name2texture.ironPlate)
-    this.textures.addBase64(TEXTURES.crate, name2texture.crate)
+    preloadAssets(this, [
+      {
+        type: 'image',
+        name: TEXTURES.stoneFloor,
+        data: name2texture.stoneFloor,
+      },
+      {
+        type: 'base64',
+        name: TEXTURES.player,
+        data: name2texture.player,
+      },
+      {
+        type: 'base64',
+        name: TEXTURES.frame,
+        data: name2texture.frame,
+      },
+      {
+        type: 'base64',
+        name: TEXTURES.ironPlate,
+        data: name2texture.ironPlate,
+      },
+      {
+        type: 'base64',
+        name: TEXTURES.crate,
+        data: name2texture.crate,
+      },
+    ])
   }
   create() {
+    console.log('=-= create')
     const initialData = this.loadState()
     this.world = initialData.world
     this.map = initialData.map
@@ -71,6 +90,7 @@ export class MainScene extends Scene {
     this.lyingObjects = new Phaser.GameObjects.Group(this)
     this.constructedObjects = this.physics.add.staticGroup()
 
+    console.log('=-= create')
     // Set world bounds
     this.physics.world.setBounds(
       worldSize.x * tileSize,
@@ -79,6 +99,7 @@ export class MainScene extends Scene {
       worldSize.h * tileSize
     )
 
+    console.log('=-= create 1')
     // Background
     this.add.tileSprite(
       (worldSize.x + worldSize.w / 2) * tileSize,
@@ -88,13 +109,18 @@ export class MainScene extends Scene {
       TEXTURES.stoneFloor
     )
 
+    console.log('=-= create 2')
     this.addPlayer(initialData.player)
 
+    console.log('=-= create 3')
     applyCameraToSprite(this, this.player)
 
+    console.log('=-= create 4')
     this.makeInitialStructure(initialData.map)
 
+    console.log('=-= create 5')
     this.addEvents()
+    console.log('=-= create end')
   }
   update(time: number, delta: number) {
     this.onUpdateListeners.forEach((cb) => {
@@ -133,7 +159,6 @@ export class MainScene extends Scene {
   }
 
   private addPlayer(player: PlayerState) {
-    // TODO: fill backpack and belt
     const { position, backpack, belt } = player
     const [x, y] = position
     const scale = 0.5

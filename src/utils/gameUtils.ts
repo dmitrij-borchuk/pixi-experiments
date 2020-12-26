@@ -108,3 +108,68 @@ export function getFirstHit<T>(
 
   return firstHit
 }
+
+interface Asset {
+  type: 'image' | 'base64'
+  name: string
+  data: string
+}
+export function preloadAssets(scene: Scene, assets: Asset[]) {
+  const base64AssetsToLoad: string[] = []
+  let base64Amount = 0
+  let imageAmount = 0
+  let base64Progress = 0
+  let imagesProgress = 0
+  assets.forEach((asset) => {
+    if (asset.type === 'image') {
+      imageAmount++
+      return scene.load.image(asset.name, asset.data)
+    }
+
+    if (asset.type === 'base64') {
+      base64AssetsToLoad.push(asset.name)
+      scene.textures.addBase64(asset.name, asset.data)
+    }
+  })
+  base64Amount = base64AssetsToLoad.length
+
+  var progressBar = scene.add.graphics()
+  progressBar.depth = 100
+  var progressBox = scene.add.graphics()
+  progressBox.fillStyle(0x222222, 0.8)
+  progressBox.fillRect(240, 270, 320, 50)
+  progressBox.depth = 100
+
+  const onComplete = () => {
+    progressBar.destroy()
+    progressBox.destroy()
+  }
+
+  function setProgress() {
+    const all = imageAmount + base64Amount
+    const imagePart = imageAmount / all
+    const base64Part = base64Amount / all
+    const value = base64Part * base64Progress + imagePart * imagesProgress
+    progressBar.clear()
+    progressBar.fillStyle(0xffffff, 1)
+    progressBar.fillRect(250, 280, 300 * value, 30)
+
+    if (value === 1) {
+      onComplete()
+    }
+  }
+
+  scene.load.on('progress', function (value: number) {
+    imagesProgress = value
+    setProgress()
+  })
+
+  scene.textures.on('onload', (name: string) => {
+    const index = base64AssetsToLoad.indexOf(name)
+    if (index >= 0) {
+      base64AssetsToLoad.splice(index, 1)
+    }
+    base64Progress = (base64Amount - base64AssetsToLoad.length) / base64Amount
+    setProgress()
+  })
+}

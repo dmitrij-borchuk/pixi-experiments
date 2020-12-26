@@ -125,12 +125,12 @@ function getAllToAllRelationship(modules: Module[]) {
   return relationship
 }
 function moveRect(direction: number, rect: Rectangle): Rectangle {
-  const coords = [
-    [rect.left, rect.top],
-    [rect.right, rect.top],
-    [rect.right, rect.bottom],
-    [rect.left, rect.bottom],
-  ]
+  // const coords = [
+  //   [rect.left, rect.top],
+  //   [rect.right, rect.top],
+  //   [rect.right, rect.bottom],
+  //   [rect.left, rect.bottom],
+  // ]
   const obj = {
     x: rect.left,
     y: rect.top,
@@ -179,12 +179,12 @@ function moveRect(direction: number, rect: Rectangle): Rectangle {
 interface Module extends Rectangle {
   direction: number
 }
-const directions = [0, 45, 90, 135, 180, 225, 270, 315]
+// const directions = [0, 45, 90, 135, 180, 225, 270, 315]
 export function generateStation() {
-  const amount = getRandom(10, 4)
+  // const amount = getRandom(10, 4)
   // const amount = getRandom(2, 2)
   let modules: Module[] = []
-  const modulesTmp: Module[] = []
+  // const modulesTmp: Module[] = []
   let map: GameMap = {}
 
   // for (let i = 0; i < amount; i++) {

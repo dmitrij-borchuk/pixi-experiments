@@ -57,12 +57,12 @@ class RoomScene extends Phaser.Scene {
     this.createItemsBar()
 
     // Creates object for input with WASD kets
-    const moveKeys = this.input.keyboard.addKeys({
-      up: Phaser.Input.Keyboard.KeyCodes.W,
-      down: Phaser.Input.Keyboard.KeyCodes.S,
-      left: Phaser.Input.Keyboard.KeyCodes.A,
-      right: Phaser.Input.Keyboard.KeyCodes.D,
-    }) as any
+    // const moveKeys = this.input.keyboard.addKeys({
+    //   up: Phaser.Input.Keyboard.KeyCodes.W,
+    //   down: Phaser.Input.Keyboard.KeyCodes.S,
+    //   left: Phaser.Input.Keyboard.KeyCodes.A,
+    //   right: Phaser.Input.Keyboard.KeyCodes.D,
+    // }) as any
 
     // Enables movement of player with WASD keys
     // this.input.keyboard.on('keydown_W', (event: any) => {
