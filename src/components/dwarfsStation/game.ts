@@ -206,13 +206,11 @@ export class MainScene extends Scene {
         const [x, y] = getTileFomCoords(tileSize, tileSize, worldX, worldY)
         this.buildObject(constructorConfig, x, y)
       }
-    } else {
-      this.useLyingObject(pointer)
     }
   }
 
   private onUsePressed(event: KeyboardEvent) {
-    // TODO: probably need to be used on all objects
+    this.useLyingObject(this.input.activePointer)
     const hit = getFirstHit(this, this.input.activePointer, this.constructedObjects.getChildren())
 
     if (hit) {
