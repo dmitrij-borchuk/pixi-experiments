@@ -114,7 +114,7 @@ export class MainScene extends Scene {
       const { worldX, worldY } = this.game.input.mousePointer
       const [x, y] = getTileFomCoords(tileSize, tileSize, worldX, worldY)
       this.buildPreview.setPosition(x * tileSize, y * tileSize)
-      if (!this.map[getMapKey(x, y)]) {
+      if (!this.map[getMapKey(x, y)] && this.isReachableDistance(x * tileSize, y * tileSize)) {
         this.buildPreview.setTint(0x55ff55, 0x55ff55, 0x55ff55, 0x55ff55)
       } else {
         this.buildPreview.setTint(0xff5555, 0xff5555, 0xff5555, 0xff5555)
@@ -198,8 +198,7 @@ export class MainScene extends Scene {
 
   private onPointerDown(pointer: Phaser.Input.Pointer) {
     // `pointer.button` = 0 when it is a left mouse click
-    if (this.currentTool && pointer.button === 0) {
-      // TODO: Check distance
+    if (this.currentTool && pointer.button === 0 && this.isReachableDistance(pointer.worldX, pointer.worldY)) {
       const constructorConfig = objectsConfig[this.currentTool.id]
 
       if (constructorConfig && constructorConfig.isBuildable) {
@@ -276,9 +275,13 @@ export class MainScene extends Scene {
     obj.setInteractive()
   }
 
+  private isReachableDistance(x: number, y: number) {
+    const distance = Phaser.Math.Distance.BetweenPoints(this.player.body, { x, y })
+    return distance <= maxDistanceToInteract
+  }
+
   private useLyingObject(pointer: Phaser.Input.Pointer) {
-    const distance = Phaser.Math.Distance.BetweenPoints(this.player.body, { x: pointer.worldX, y: pointer.worldY })
-    if (distance <= maxDistanceToInteract) {
+    if (this.isReachableDistance(pointer.worldX, pointer.worldY)) {
       const [firstHit] = this.input.manager.hitTest(
         pointer,
         this.lyingObjects.getChildren(),
