@@ -210,13 +210,16 @@ export class MainScene extends Scene {
   }
 
   private onUsePressed(event: KeyboardEvent) {
+    if (!this.isReachableDistance(this.input.activePointer.worldX, this.input.activePointer.worldY)) {
+      return
+    }
+
     this.useLyingObject(this.input.activePointer)
     const hit = getFirstHit(this, this.input.activePointer, this.constructedObjects.getChildren())
 
     if (hit) {
       const id = hit.getData('id')
       const config: ConstructedObject = hit.getData('config')
-      // TODO: Check distance
       const constructorConfig = objectsConfig[id]
 
       if (!constructorConfig) {
