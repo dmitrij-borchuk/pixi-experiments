@@ -173,3 +173,19 @@ export function preloadAssets(scene: Scene, assets: Asset[]) {
     setProgress()
   })
 }
+
+export function applyDynamicTileBackground(scene: Scene, textureName: string) {
+  const bg = scene.add.tileSprite(0, 0, 0, 0, textureName)
+  const texture = scene.textures.get(textureName)
+  const image = texture.getSourceImage()
+  const textureWidth = image.width
+  const textureHeight = image.height
+
+  return function () {
+    const { width, height, centerX, centerY } = scene.cameras.main.worldView
+    const x = centerX - (centerX % textureWidth)
+    const y = centerY - (centerY % textureHeight)
+    bg.setPosition(x, y)
+    bg.setSize(width + textureWidth * 3, height + textureHeight * 3)
+  }
+}

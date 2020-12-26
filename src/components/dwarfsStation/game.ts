@@ -2,6 +2,7 @@ import Phaser, { Scene } from 'phaser'
 import {
   applyCameraToSprite,
   applyCollider,
+  applyDynamicTileBackground,
   applyMovement,
   getFirstHit,
   getTileFomCoords,
@@ -82,7 +83,6 @@ export class MainScene extends Scene {
     ])
   }
   create() {
-    console.log('=-= create')
     const initialData = this.loadState()
     this.world = initialData.world
     this.map = initialData.map
@@ -90,7 +90,6 @@ export class MainScene extends Scene {
     this.lyingObjects = new Phaser.GameObjects.Group(this)
     this.constructedObjects = this.physics.add.staticGroup()
 
-    console.log('=-= create')
     // Set world bounds
     this.physics.world.setBounds(
       worldSize.x * tileSize,
@@ -99,28 +98,16 @@ export class MainScene extends Scene {
       worldSize.h * tileSize
     )
 
-    console.log('=-= create 1')
     // Background
-    this.add.tileSprite(
-      (worldSize.x + worldSize.w / 2) * tileSize,
-      (worldSize.y + worldSize.h / 2) * tileSize,
-      worldSize.w * tileSize,
-      worldSize.h * tileSize,
-      TEXTURES.stoneFloor
-    )
+    this.onUpdateListeners.push(applyDynamicTileBackground(this, TEXTURES.stoneFloor))
 
-    console.log('=-= create 2')
     this.addPlayer(initialData.player)
 
-    console.log('=-= create 3')
     applyCameraToSprite(this, this.player)
 
-    console.log('=-= create 4')
     this.makeInitialStructure(initialData.map)
 
-    console.log('=-= create 5')
     this.addEvents()
-    console.log('=-= create end')
   }
   update(time: number, delta: number) {
     this.onUpdateListeners.forEach((cb) => {
