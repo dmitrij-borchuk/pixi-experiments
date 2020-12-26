@@ -34,12 +34,6 @@ function isInteractive(constructorConfig: ObjectConfig) {
   return constructorConfig.isContainer
 }
 
-// TODO: add loading
-// https://gamedevacademy.org/creating-a-preloading-screen-in-phaser-3/?a=13
-
-// TODO: remove events when some UI window opened
-// pointer, keyboard events
-
 export class MainScene extends Scene {
   public player!: Player
   private onUpdateListeners: ((time: number, delta: number) => void)[] = []
@@ -183,27 +177,36 @@ export class MainScene extends Scene {
   }
 
   private addEvents() {
-    this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-      // TODO: check if left mouse click
-      if (this.currentTool) {
-        // TODO: Check distance
-        const constructorConfig = objectsConfig[this.currentTool.id]
+    const onPointerDownBinded = this.onPointerDown.bind(this)
+    this.input.on('pointerdown', onPointerDownBinded)
 
-        if (constructorConfig && constructorConfig.isBuildable) {
-          const { worldX, worldY } = pointer
-          const [x, y] = getTileFomCoords(tileSize, tileSize, worldX, worldY)
-          this.buildObject(constructorConfig, x, y)
-        }
-      } else {
-        this.useLyingObject(pointer)
-      }
-    })
-
-    // Belt events
+    // HUD events
     const hud = this.scene.get('HUDScene') as HUDScene
     hud.events.on('beltSlotClick', this.onBeltSlotClick.bind(this))
+    hud.events.on('containerOpened', () => {
+      this.input.off('pointerdown', onPointerDownBinded)
+    })
+    hud.events.on('containerClosed', () => {
+      this.input.on('pointerdown', onPointerDownBinded)
+    })
 
     this.input.keyboard.on('keyup_E', this.onUsePressed.bind(this))
+  }
+
+  private onPointerDown(pointer: Phaser.Input.Pointer) {
+    // TODO: check if left mouse click
+    if (this.currentTool) {
+      // TODO: Check distance
+      const constructorConfig = objectsConfig[this.currentTool.id]
+
+      if (constructorConfig && constructorConfig.isBuildable) {
+        const { worldX, worldY } = pointer
+        const [x, y] = getTileFomCoords(tileSize, tileSize, worldX, worldY)
+        this.buildObject(constructorConfig, x, y)
+      }
+    } else {
+      this.useLyingObject(pointer)
+    }
   }
 
   private onUsePressed(event: KeyboardEvent) {

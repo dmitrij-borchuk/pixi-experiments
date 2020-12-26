@@ -110,6 +110,8 @@ export class HUDScene extends Phaser.Scene {
     this.drawBackpackContainer(content)
 
     this.container.setVisible(true)
+
+    this.events.emit('containerOpened')
   }
 
   private drawBelt() {
@@ -214,6 +216,7 @@ export class HUDScene extends Phaser.Scene {
 
   private closeContainer() {
     this.container.setVisible(false)
+    this.events.emit('containerClosed')
   }
 
   public getBelt() {
@@ -234,5 +237,7 @@ export class HUDScene extends Phaser.Scene {
     this.drawContainer('left', content)
     this.drawContainer('right', list)
     this.container.setVisible(true)
+
+    this.events.emit('containerOpened')
   }
 }
