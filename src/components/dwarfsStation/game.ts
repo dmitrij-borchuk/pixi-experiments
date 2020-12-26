@@ -109,11 +109,15 @@ export class MainScene extends Scene {
     })
 
     if (this.buildPreview) {
-      // TODO: check if place is available
       this.game.input.mousePointer.updateWorldPoint(this.cameras.main)
       const { worldX, worldY } = this.game.input.mousePointer
       const [x, y] = getTileFomCoords(tileSize, tileSize, worldX, worldY)
       this.buildPreview.setPosition(x * tileSize, y * tileSize)
+      if (!this.map[getMapKey(x, y)]) {
+        this.buildPreview.setTint(0x55ff55, 0x55ff55, 0x55ff55, 0x55ff55)
+      } else {
+        this.buildPreview.setTint(0xff5555, 0xff5555, 0xff5555, 0xff5555)
+      }
     }
   }
 
@@ -134,7 +138,6 @@ export class MainScene extends Scene {
     if (constructorConfig && constructorConfig.isBuildable) {
       this.buildPreview = this.add.image(0, 0, constructorConfig.view)
       this.buildPreview.setDisplaySize(tileSize, tileSize)
-      this.buildPreview.setTint(0x55ff55, 0x55ff55, 0x55ff55, 0x55ff55)
       this.buildPreview.setAlpha(0.5)
     }
   }
