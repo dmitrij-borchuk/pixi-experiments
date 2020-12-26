@@ -34,6 +34,7 @@ function isInteractive(constructorConfig: ObjectConfig) {
   return constructorConfig.isContainer
 }
 
+// TODO: disable context menu
 export class MainScene extends Scene {
   public player!: Player
   private onUpdateListeners: ((time: number, delta: number) => void)[] = []
@@ -122,7 +123,6 @@ export class MainScene extends Scene {
   }
 
   private onBeltSlotClick(descriptor?: ObjectInstanceDescriptor) {
-    // TODO: check if buildable
     if (this.buildPreview) {
       this.buildPreview.destroy()
       this.buildPreview = undefined
@@ -197,8 +197,8 @@ export class MainScene extends Scene {
   }
 
   private onPointerDown(pointer: Phaser.Input.Pointer) {
-    // TODO: check if left mouse click
-    if (this.currentTool) {
+    // `pointer.button` = 0 when it is a left mouse click
+    if (this.currentTool && pointer.button === 0) {
       // TODO: Check distance
       const constructorConfig = objectsConfig[this.currentTool.id]
 
