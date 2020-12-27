@@ -37,9 +37,11 @@ function isInteractive(constructorConfig: ObjectConfig) {
 export function addBuildPreview(scene: MainScene) {
   let buildPreview: Phaser.GameObjects.Container | null = null
   let img: Phaser.GameObjects.Image | null = null
+  let text: Phaser.GameObjects.Text | null = null
+  let currentConfig: ObjectConfig | undefined
+  let currentVariant: string
 
   scene.events.on('update', function (time: number, delta: number) {
-    console.log('=-= onUpdate')
     if (buildPreview && img) {
       scene.game.input.mousePointer.updateWorldPoint(scene.cameras.main)
       const { worldX, worldY } = scene.game.input.mousePointer
@@ -52,17 +54,44 @@ export function addBuildPreview(scene: MainScene) {
       }
     }
   })
+
+  function onWheel(pointer: { movementX: any; movementY: any }, objects: any[], dx: number, dy: number, dz: number) {
+    if (currentConfig?.variants) {
+      const keys = Object.keys(currentConfig.variants)
+      const index = keys.indexOf(currentVariant)
+
+      if (index === -1) {
+        return
+      }
+
+      const newIndex = dy > 0 ? index + 1 : index - 1
+      if (newIndex < 0) {
+        currentVariant = keys[keys.length - 1]
+      } else if (newIndex >= keys.length) {
+        currentVariant = keys[0]
+      } else {
+        currentVariant = keys[newIndex]
+      }
+
+      text?.setText(currentVariant)
+    }
+  }
+
   return {
     updatePreview: (constructorConfig?: ObjectConfig) => {
-      if (buildPreview) {
-        buildPreview.destroy()
-      }
+      buildPreview?.destroy()
       buildPreview = null
+      img?.destroy()
       img = null
+      text?.destroy()
+      text = null
+      currentConfig = constructorConfig
+      scene.input.off('wheel', onWheel)
 
       if (!constructorConfig) {
         return
       }
+      scene.input.on('wheel', onWheel)
 
       buildPreview = scene.add.container(0, 0)
       buildPreview.setSize(tileSize, tileSize)
@@ -71,6 +100,21 @@ export function addBuildPreview(scene: MainScene) {
       img.setDisplaySize(tileSize, tileSize)
       img.setAlpha(0.5)
       buildPreview.add(img)
+
+      if (constructorConfig.variants) {
+        const [key] = Object.keys(constructorConfig.variants)
+        if (key) {
+          const offset = tileSize / 2
+          // TODO: add number
+          text = scene.add.text(-offset, -offset, key)
+          text.setOrigin(0, 1)
+          text.setFontSize(60)
+          text.setShadow(0, 0, '#000', 20, false, true)
+          buildPreview.add(text)
+
+          currentVariant = key
+        }
+      }
     },
   }
 }

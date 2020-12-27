@@ -1,4 +1,8 @@
 export interface BuildVariant {
+  // TODO:
+  // titleKey: string
+  // title: string
+  // view: string
   buildProps: {
     isSolid?: boolean
     steps?: {
