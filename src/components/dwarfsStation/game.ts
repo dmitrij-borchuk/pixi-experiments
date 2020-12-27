@@ -34,16 +34,57 @@ function isInteractive(constructorConfig: ObjectConfig) {
   return constructorConfig.isContainer
 }
 
+export function addBuildPreview(scene: MainScene) {
+  let buildPreview: Phaser.GameObjects.Container | null = null
+  let img: Phaser.GameObjects.Image | null = null
+
+  scene.events.on('update', function (time: number, delta: number) {
+    console.log('=-= onUpdate')
+    if (buildPreview && img) {
+      scene.game.input.mousePointer.updateWorldPoint(scene.cameras.main)
+      const { worldX, worldY } = scene.game.input.mousePointer
+      const [x, y] = getTileFomCoords(tileSize, tileSize, worldX, worldY)
+      buildPreview.setPosition(x * tileSize, y * tileSize)
+      if (!scene.map[getMapKey(x, y)] && scene.isReachableDistance(worldX, worldY)) {
+        img.setTint(0x55ff55, 0x55ff55, 0x55ff55, 0x55ff55)
+      } else {
+        img.setTint(0xff5555, 0xff5555, 0xff5555, 0xff5555)
+      }
+    }
+  })
+  return {
+    updatePreview: (constructorConfig?: ObjectConfig) => {
+      if (buildPreview) {
+        buildPreview.destroy()
+      }
+      buildPreview = null
+      img = null
+
+      if (!constructorConfig) {
+        return
+      }
+
+      buildPreview = scene.add.container(0, 0)
+      buildPreview.setSize(tileSize, tileSize)
+
+      img = scene.add.image(0, 0, constructorConfig.view)
+      img.setDisplaySize(tileSize, tileSize)
+      img.setAlpha(0.5)
+      buildPreview.add(img)
+    },
+  }
+}
+
 // TODO: disable context menu
 export class MainScene extends Scene {
   public player!: Player
   private onUpdateListeners: ((time: number, delta: number) => void)[] = []
   private lyingObjects!: Phaser.GameObjects.Group
   private constructedObjects!: Phaser.Physics.Arcade.StaticGroup
-  private buildPreview?: Phaser.GameObjects.Image
   private currentTool?: ObjectInstanceDescriptor
-  private map: GameState['map'] = {}
   private world!: GameState['world']
+  public map: GameState['map'] = {}
+  private buildPreview!: ReturnType<typeof addBuildPreview>
 
   constructor() {
     super(SCENES.MAIN)
@@ -103,31 +144,16 @@ export class MainScene extends Scene {
     this.makeInitialStructure(initialData.map)
 
     this.addEvents()
+
+    this.buildPreview = addBuildPreview(this)
   }
   update(time: number, delta: number) {
     this.onUpdateListeners.forEach((cb) => {
       cb(time, delta)
     })
-
-    if (this.buildPreview) {
-      this.game.input.mousePointer.updateWorldPoint(this.cameras.main)
-      const { worldX, worldY } = this.game.input.mousePointer
-      const [x, y] = getTileFomCoords(tileSize, tileSize, worldX, worldY)
-      this.buildPreview.setPosition(x * tileSize, y * tileSize)
-      if (!this.map[getMapKey(x, y)] && this.isReachableDistance(worldX, worldY)) {
-        this.buildPreview.setTint(0x55ff55, 0x55ff55, 0x55ff55, 0x55ff55)
-      } else {
-        this.buildPreview.setTint(0xff5555, 0xff5555, 0xff5555, 0xff5555)
-      }
-    }
   }
 
   private onBeltSlotClick(descriptor?: ObjectInstanceDescriptor) {
-    if (this.buildPreview) {
-      this.buildPreview.destroy()
-      this.buildPreview = undefined
-    }
-
     this.currentTool = undefined
     if (descriptor) {
       this.currentTool = descriptor
@@ -135,11 +161,7 @@ export class MainScene extends Scene {
 
     const constructorConfig = descriptor && objectsConfig[descriptor.id]
 
-    if (constructorConfig && constructorConfig.isBuildable) {
-      this.buildPreview = this.add.image(0, 0, constructorConfig.view)
-      this.buildPreview.setDisplaySize(tileSize, tileSize)
-      this.buildPreview.setAlpha(0.5)
-    }
+    this.buildPreview.updatePreview(constructorConfig)
   }
 
   private addPlayer(player: PlayerState) {
@@ -276,7 +298,7 @@ export class MainScene extends Scene {
     obj.setInteractive()
   }
 
-  private isReachableDistance(x: number, y: number) {
+  public isReachableDistance(x: number, y: number) {
     const distance = Phaser.Math.Distance.BetweenPoints(this.player.body, { x, y })
     return distance <= maxDistanceToInteract
   }

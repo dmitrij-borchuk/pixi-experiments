@@ -1,15 +1,7 @@
-export interface ObjectConfig {
-  id: string
-  displayNameKey: string
-  defaultDisplayName: string
-  isContainer?: boolean
-  view: string
-  isDroppable?: boolean
-  isBuildable?: boolean
-  stack?: number
-  buildProps?: {
+export interface BuildVariant {
+  buildProps: {
     isSolid?: boolean
-    buildSteps?: {
+    steps?: {
       toMake?: {
         ingredients: {
           name: string
@@ -19,8 +11,20 @@ export interface ObjectConfig {
       gasOpaque: boolean
       lightOpaque: boolean
     }[]
+    layer: string
   }
+}
+export interface ObjectConfig {
+  id: string
+  displayNameKey: string
+  defaultDisplayName: string
+  isContainer?: boolean
+  view: string
+  isDroppable?: boolean
+  isBuildable?: boolean
+  stack?: number
   maxHealth?: number
+  variants?: Record<string, BuildVariant>
 }
 
 export interface ObjectInstanceDescriptor {

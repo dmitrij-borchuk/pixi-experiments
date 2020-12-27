@@ -6,26 +6,56 @@
   "view": "frame",
   "isDroppable": true,
   "isBuildable": true,
+  "maxHealth": 50,
   "stack": 50,
-  "buildProps": {
-    "isSolid": true,
-    "buildSteps": [
-      {
-        "gasOpaque": true,
-        "lightOpaque": true
-      },
-      {
-        "toMake": {
-          "ingredients": [
-            {
-              "name": "ironPlate",
-              "amount": 1
-            }
-          ]
-        },
-        "gasOpaque": false,
-        "lightOpaque": false
+  "variants": {
+    "wall": {
+      "buildProps": {
+        "isSolid": true,
+        "layer": "walls",
+        "steps": [
+          {
+            "gasOpaque": true,
+            "lightOpaque": true
+          },
+          {
+            "toMake": {
+              "ingredients": [
+                {
+                  "name": "ironPlate",
+                  "amount": 1
+                }
+              ]
+            },
+            "gasOpaque": false,
+            "lightOpaque": false
+          }
+        ]
       }
-    ]
+    },
+    "floor": {
+      "buildProps": {
+        "isSolid": false,
+        "layer": "floors",
+        "steps": [
+          {
+            "gasOpaque": true,
+            "lightOpaque": true
+          },
+          {
+            "toMake": {
+              "ingredients": [
+                {
+                  "name": "ironPlate",
+                  "amount": 1
+                }
+              ]
+            },
+            "gasOpaque": false,
+            "lightOpaque": false
+          }
+        ]
+      }
+    }
   }
 }
