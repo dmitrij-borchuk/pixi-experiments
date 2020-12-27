@@ -114,7 +114,7 @@ export class MainScene extends Scene {
       const { worldX, worldY } = this.game.input.mousePointer
       const [x, y] = getTileFomCoords(tileSize, tileSize, worldX, worldY)
       this.buildPreview.setPosition(x * tileSize, y * tileSize)
-      if (!this.map[getMapKey(x, y)] && this.isReachableDistance(x * tileSize, y * tileSize)) {
+      if (!this.map[getMapKey(x, y)] && this.isReachableDistance(worldX, worldY)) {
         this.buildPreview.setTint(0x55ff55, 0x55ff55, 0x55ff55, 0x55ff55)
       } else {
         this.buildPreview.setTint(0xff5555, 0xff5555, 0xff5555, 0xff5555)
@@ -296,8 +296,9 @@ export class MainScene extends Scene {
         }
         this.player.addToContainer(obj)
         // TODO: it could be animated with flying to player and scaling to 0
-        // TODO: remove from the `map`
         firstHit.destroy()
+        const [x, y] = getTileFomCoords(tileSize, tileSize, firstHit.x, firstHit.y)
+        delete this.map[getMapKey(x, y)]
       }
     }
   }
