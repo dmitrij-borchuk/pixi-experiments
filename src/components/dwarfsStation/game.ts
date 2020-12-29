@@ -16,7 +16,16 @@ import { Player } from './Player'
 import { name2texture, TEXTURES } from './textures'
 import { objectsConfig } from './objectsConfig'
 import { HUDScene } from './HUD'
-import { GameState, StuffObject, ObjectConfig, ObjectInstanceDescriptor, PlayerState, ConstructedObject } from './types'
+import {
+  GameState,
+  StuffObject,
+  ObjectConfig,
+  ObjectInstanceDescriptor,
+  PlayerState,
+  ConstructedObject,
+  ConstructionObjectConfig,
+  StuffObjectConfig,
+} from './types'
 import { SCENES } from './constants'
 
 const tileSize = 120
@@ -38,7 +47,7 @@ export function addBuildPreview(scene: MainScene) {
   let buildPreview: Phaser.GameObjects.Container | null = null
   let img: Phaser.GameObjects.Image | null = null
   let text: Phaser.GameObjects.Text | null = null
-  let currentConfig: ObjectConfig | undefined
+  let currentConfig: ConstructionObjectConfig | undefined
   let currentVariant: string
 
   scene.events.on('update', function (time: number, delta: number) {
@@ -78,17 +87,17 @@ export function addBuildPreview(scene: MainScene) {
   }
 
   return {
-    updatePreview: (constructorConfig?: ObjectConfig) => {
+    updatePreview: (constructorConfig?: ConstructionObjectConfig | StuffObjectConfig) => {
       buildPreview?.destroy()
       buildPreview = null
       img?.destroy()
       img = null
       text?.destroy()
       text = null
-      currentConfig = constructorConfig
+      currentConfig = constructorConfig?.isBuildable ? constructorConfig : undefined
       scene.input.off('wheel', onWheel)
 
-      if (!constructorConfig) {
+      if (!constructorConfig || !constructorConfig.isBuildable) {
         return
       }
       scene.input.on('wheel', onWheel)
@@ -116,6 +125,7 @@ export function addBuildPreview(scene: MainScene) {
         }
       }
     },
+    getVariant: () => currentVariant,
   }
 }
 
@@ -127,7 +137,9 @@ export class MainScene extends Scene {
   private constructedObjects!: Phaser.Physics.Arcade.StaticGroup
   private currentTool?: ObjectInstanceDescriptor
   private world!: GameState['world']
+  // TODO: use `Map`
   public map: GameState['map'] = {}
+  // TODO: save Phaser items to the map
   private buildPreview!: ReturnType<typeof addBuildPreview>
 
   constructor() {
@@ -159,6 +171,16 @@ export class MainScene extends Scene {
         type: 'base64',
         name: TEXTURES.crate,
         data: name2texture.crate,
+      },
+      {
+        type: 'base64',
+        name: TEXTURES.ironFloor,
+        data: name2texture.ironFloor,
+      },
+      {
+        type: 'base64',
+        name: TEXTURES.ironWall,
+        data: name2texture.ironWall,
       },
     ])
   }
@@ -219,6 +241,7 @@ export class MainScene extends Scene {
       .setDisplaySize(tileSize * scale, tileSize * scale)
       .setCollideWorldBounds(true)
       .setDrag(3000)
+      .setDepth(10)
     this.player = playerInstance
 
     backpack.forEach((item) => playerInstance.addToContainer(item))
@@ -238,7 +261,7 @@ export class MainScene extends Scene {
         const [x, y] = parseMapKey(key)
         if (config.kind === 'stuff') {
           this.placeObject(constructorConfig, config, x, y)
-        } else {
+        } else if (constructorConfig.isBuildable) {
           this.placeConstruction(constructorConfig, config, x, y)
         }
       }
@@ -265,12 +288,62 @@ export class MainScene extends Scene {
   private onPointerDown(pointer: Phaser.Input.Pointer) {
     // `pointer.button` = 0 when it is a left mouse click
     if (this.currentTool && pointer.button === 0 && this.isReachableDistance(pointer.worldX, pointer.worldY)) {
-      const constructorConfig = objectsConfig[this.currentTool.id]
+      const toolConfig = objectsConfig[this.currentTool.id]
 
-      if (constructorConfig && constructorConfig.isBuildable) {
-        const { worldX, worldY } = pointer
-        const [x, y] = getTileFomCoords(tileSize, tileSize, worldX, worldY)
-        this.buildObject(constructorConfig, x, y)
+      if (!toolConfig) {
+        return
+      }
+
+      const { worldX, worldY } = pointer
+      const [x, y] = getTileFomCoords(tileSize, tileSize, worldX, worldY)
+
+      if (toolConfig.isBuildable) {
+        return this.buildObject(toolConfig, x, y)
+      }
+
+      const item = this.map[getMapKey(x, y)]
+      if (item) {
+        const itemConstructorConfig = objectsConfig[item.id]
+        if (item.kind !== 'construction' || !itemConstructorConfig.isBuildable) {
+          return
+        }
+        const { variant, step } = item
+        const { variants } = itemConstructorConfig
+
+        if (!variants) {
+          return
+        }
+
+        const nextStep = variants[variant].buildProps.steps[step + 1]
+
+        if (!nextStep) {
+          return
+        }
+
+        const neededIngredient = nextStep.toMake?.ingredients.find((ing) => ing.name === toolConfig.id)
+        const hasIngredient = item.ingredients.find((ing) => ing.name === toolConfig.id)
+
+        if (!neededIngredient) {
+          return
+        }
+
+        const needAmount = neededIngredient.amount - (hasIngredient?.amount || 0)
+        if (this.currentTool.amount >= needAmount) {
+          item.step = step + 1
+          // item.
+
+          // TODO: fix `as Phaser.Physics.Arcade.Image`
+          const hit = getFirstHit(this, pointer, this.constructedObjects.getChildren()) as Phaser.Physics.Arcade.Image
+
+          // Update data
+          hit?.setData('step', item.step)
+          hit?.setData('built', true)
+          hit?.setTexture(nextStep.view)
+          hit?.setDisplaySize(tileSize, tileSize)
+          return
+        }
+
+        // TODO: need more resources
       }
     }
   }
@@ -299,7 +372,7 @@ export class MainScene extends Scene {
     }
   }
 
-  private buildObject(constructorConfig: ObjectConfig, x: number, y: number) {
+  private buildObject(constructorConfig: ConstructionObjectConfig, x: number, y: number) {
     if (!this.map[getMapKey(x, y)]) {
       const data: ConstructedObject = {
         kind: 'construction',
@@ -307,6 +380,8 @@ export class MainScene extends Scene {
         health: constructorConfig.maxHealth || 0,
         id: constructorConfig.id,
         step: 0,
+        variant: this.buildPreview.getVariant(),
+        ingredients: [],
       }
       this.map[getMapKey(x, y)] = data
       this.placeConstruction(constructorConfig, data, x, y)
@@ -314,7 +389,14 @@ export class MainScene extends Scene {
     }
   }
 
-  private placeConstruction(constructorConfig: ObjectConfig, config: ConstructedObject, x: number, y: number) {
+  private placeConstruction(
+    constructorConfig: ConstructionObjectConfig,
+    config: ConstructedObject,
+    x: number,
+    y: number
+  ) {
+    const { variant } = config
+    const { isSolid } = constructorConfig.variants[variant].buildProps
     const obj: Phaser.Physics.Arcade.Image = this.constructedObjects.create(
       x * tileSize,
       y * tileSize,
@@ -325,10 +407,12 @@ export class MainScene extends Scene {
     obj.setData('step', 0)
     obj.setData('config', config)
     obj.refreshBody()
-    if (isInteractive(constructorConfig)) {
-      obj.setInteractive()
+    // if (isInteractive(constructorConfig)) {
+    // }
+    obj.setInteractive()
+    if (isSolid) {
+      applyCollider(this, this.player, obj)
     }
-    applyCollider(this, this.player, obj)
   }
 
   private placeObject(constructorConfig: ObjectConfig, config: StuffObject, x: number, y: number) {

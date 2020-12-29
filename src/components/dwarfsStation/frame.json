@@ -16,7 +16,8 @@
         "steps": [
           {
             "gasOpaque": true,
-            "lightOpaque": true
+            "lightOpaque": true,
+            "view": "frame"
           },
           {
             "toMake": {
@@ -28,7 +29,8 @@
               ]
             },
             "gasOpaque": false,
-            "lightOpaque": false
+            "lightOpaque": false,
+            "view": "ironWall"
           }
         ]
       }
@@ -40,7 +42,8 @@
         "steps": [
           {
             "gasOpaque": true,
-            "lightOpaque": true
+            "lightOpaque": true,
+            "view": "frame"
           },
           {
             "toMake": {
@@ -52,7 +55,8 @@
               ]
             },
             "gasOpaque": false,
-            "lightOpaque": false
+            "lightOpaque": false,
+            "view": "ironFloor"
           }
         ]
       }

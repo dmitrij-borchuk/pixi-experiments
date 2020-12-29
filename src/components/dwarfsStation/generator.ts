@@ -50,6 +50,8 @@ export function generateInitialStructure(): GameState {
             },
           ],
         },
+        ingredients: [],
+        variant: 'crate',
       },
     },
   }

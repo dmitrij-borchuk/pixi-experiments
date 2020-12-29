@@ -5,7 +5,7 @@ export interface BuildVariant {
   // view: string
   buildProps: {
     isSolid?: boolean
-    steps?: {
+    steps: {
       toMake?: {
         ingredients: {
           name: string
@@ -14,21 +14,29 @@ export interface BuildVariant {
       }
       gasOpaque: boolean
       lightOpaque: boolean
+      view: string
     }[]
     layer: string
   }
 }
+
 export interface ObjectConfig {
   id: string
   displayNameKey: string
   defaultDisplayName: string
-  isContainer?: boolean
+  isContainer: boolean
   view: string
-  isDroppable?: boolean
-  isBuildable?: boolean
-  stack?: number
-  maxHealth?: number
-  variants?: Record<string, BuildVariant>
+  isDroppable: boolean
+  stack: number
+  maxHealth: number
+  isBuildable: boolean
+}
+export interface ConstructionObjectConfig extends ObjectConfig {
+  isBuildable: true
+  variants: Record<string, BuildVariant>
+}
+export interface StuffObjectConfig extends ObjectConfig {
+  isBuildable: false
 }
 
 export interface ObjectInstanceDescriptor {
@@ -44,6 +52,11 @@ export interface ConstructedObject {
   step: number
   angle: number
   health: number
+  variant: string
+  ingredients: {
+    name: string
+    amount: number
+  }[]
   data?: any
 }
 

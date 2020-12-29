@@ -7,13 +7,20 @@
   "isDroppable": true,
   "isBuildable": true,
   "stack": 1,
-  "buildProps": {
-    "isSolid": true,
-    "buildSteps": [
-      {
-        "gasOpaque": true,
-        "lightOpaque": true
+  "maxHealth": 100,
+  "variants": {
+    "crate": {
+      "buildProps": {
+        "isSolid": true,
+        "layer": "wall",
+        "steps": [
+          {
+            "gasOpaque": true,
+            "lightOpaque": true,
+            "view": "crate"
+          }
+        ]
       }
-    ]
+    }
   }
 }
