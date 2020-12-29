@@ -139,7 +139,7 @@ export class MainScene extends Scene {
   private world!: GameState['world']
   // TODO: use `Map`
   public map: GameState['map'] = {}
-  // TODO: save Phaser items to the map
+  private gameObjectMap: Map<string, Phaser.Physics.Arcade.Image> = new Map()
   private buildPreview!: ReturnType<typeof addBuildPreview>
 
   constructor() {
@@ -330,16 +330,18 @@ export class MainScene extends Scene {
         const needAmount = neededIngredient.amount - (hasIngredient?.amount || 0)
         if (this.currentTool.amount >= needAmount) {
           item.step = step + 1
-          // item.
 
           // TODO: fix `as Phaser.Physics.Arcade.Image`
-          const hit = getFirstHit(this, pointer, this.constructedObjects.getChildren()) as Phaser.Physics.Arcade.Image
+          const hit = this.gameObjectMap.get(getMapKey(x, y))
 
           // Update data
           hit?.setData('step', item.step)
           hit?.setData('built', true)
           hit?.setTexture(nextStep.view)
           hit?.setDisplaySize(tileSize, tileSize)
+
+          this.saveState()
+
           return
         }
 
@@ -373,7 +375,8 @@ export class MainScene extends Scene {
   }
 
   private buildObject(constructorConfig: ConstructionObjectConfig, x: number, y: number) {
-    if (!this.map[getMapKey(x, y)]) {
+    const key = getMapKey(x, y)
+    if (!this.map[key]) {
       const data: ConstructedObject = {
         kind: 'construction',
         angle: 0,
@@ -383,7 +386,7 @@ export class MainScene extends Scene {
         variant: this.buildPreview.getVariant(),
         ingredients: [],
       }
-      this.map[getMapKey(x, y)] = data
+      this.map[key] = data
       this.placeConstruction(constructorConfig, data, x, y)
       this.saveState()
     }
@@ -395,16 +398,16 @@ export class MainScene extends Scene {
     x: number,
     y: number
   ) {
-    const { variant } = config
-    const { isSolid } = constructorConfig.variants[variant].buildProps
+    const { variant, step } = config
+    const { isSolid, steps } = constructorConfig.variants[variant].buildProps
     const obj: Phaser.Physics.Arcade.Image = this.constructedObjects.create(
       x * tileSize,
       y * tileSize,
-      constructorConfig.view
+      steps[step].view
     )
     obj.setDisplaySize(tileSize, tileSize)
     obj.setData('id', constructorConfig.id)
-    obj.setData('step', 0)
+    obj.setData('step', step)
     obj.setData('config', config)
     obj.refreshBody()
     // if (isInteractive(constructorConfig)) {
@@ -413,6 +416,9 @@ export class MainScene extends Scene {
     if (isSolid) {
       applyCollider(this, this.player, obj)
     }
+
+    const key = getMapKey(x, y)
+    this.gameObjectMap.set(key, obj)
   }
 
   private placeObject(constructorConfig: ObjectConfig, config: StuffObject, x: number, y: number) {
