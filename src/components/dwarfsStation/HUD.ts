@@ -17,7 +17,7 @@ export class HUDScene extends Phaser.Scene {
   private belt: ObjectInstanceDescriptor[] = []
 
   constructor() {
-    super({ key: SCENES.HUD, active: true })
+    super({ key: SCENES.HUD, active: false })
   }
 
   preload() {

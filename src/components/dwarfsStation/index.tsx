@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { app } from './game'
+import { app } from './app'
 
 export const DwarfsStation = () => {
   useEffect(() => {

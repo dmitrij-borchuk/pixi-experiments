@@ -143,7 +143,7 @@ export class MainScene extends Scene {
   private buildPreview!: ReturnType<typeof addBuildPreview>
 
   constructor() {
-    super(SCENES.MAIN)
+    super({ key: SCENES.MAIN, active: false })
   }
   preload() {
     preloadAssets(this, [
@@ -191,6 +191,8 @@ export class MainScene extends Scene {
     const worldSize = initialData.world
     this.lyingObjects = new Phaser.GameObjects.Group(this)
     this.constructedObjects = this.physics.add.staticGroup()
+
+    this.scene.launch(SCENES.HUD)
 
     // Set world bounds
     this.physics.world.setBounds(
@@ -482,38 +484,4 @@ export class MainScene extends Scene {
 
     return loadedGame
   }
-}
-
-const config: Phaser.Types.Core.GameConfig = {
-  type: Phaser.AUTO,
-  parent: 'phaser-example',
-  width: 800,
-  height: 600,
-  physics: {
-    default: 'arcade',
-    arcade: {
-      gravity: { y: 0 },
-      // debug: true,
-    },
-  },
-  scene: [MainScene, HUDScene],
-  render: {
-    pixelArt: true,
-  },
-}
-
-export const app = {
-  init: () => {
-    const game = new Phaser.Game({
-      ...config,
-      callbacks: {
-        ...config.callbacks,
-        postBoot: () => {
-          // applyPointerLock(game)
-        },
-      },
-    })
-
-    return game
-  },
 }
