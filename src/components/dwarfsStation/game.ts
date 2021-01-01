@@ -225,7 +225,7 @@ export class MainScene extends Scene {
       this.currentTool = descriptor
     }
 
-    const constructorConfig = descriptor && objectsConfig[descriptor.id]
+    const constructorConfig = descriptor && objectsConfig[descriptor.type]
 
     this.buildPreview.updatePreview(constructorConfig)
   }
@@ -256,7 +256,7 @@ export class MainScene extends Scene {
     const keys = Object.keys(map)
     keys.forEach((key) => {
       const config = map[key]
-      const constructorConfig = objectsConfig[config.id]
+      const constructorConfig = objectsConfig[config.type]
       if (constructorConfig) {
         const [x, y] = parseMapKey(key)
         if (config.kind === 'stuff') {
@@ -288,7 +288,7 @@ export class MainScene extends Scene {
   private onPointerDown(pointer: Phaser.Input.Pointer) {
     // `pointer.button` = 0 when it is a left mouse click
     if (this.currentTool && pointer.button === 0 && this.isReachableDistance(pointer.worldX, pointer.worldY)) {
-      const toolConfig = objectsConfig[this.currentTool.id]
+      const toolConfig = objectsConfig[this.currentTool.type]
 
       if (!toolConfig) {
         return
@@ -303,7 +303,7 @@ export class MainScene extends Scene {
 
       const item = this.map[getMapKey(x, y)]
       if (item) {
-        const itemConstructorConfig = objectsConfig[item.id]
+        const itemConstructorConfig = objectsConfig[item.type]
         if (item.kind !== 'construction' || !itemConstructorConfig.isBuildable) {
           return
         }
@@ -381,7 +381,7 @@ export class MainScene extends Scene {
         kind: 'construction',
         angle: 0,
         health: constructorConfig.maxHealth || 0,
-        id: constructorConfig.id,
+        type: constructorConfig.id,
         step: 0,
         variant: this.buildPreview.getVariant(),
         ingredients: [],
@@ -422,13 +422,13 @@ export class MainScene extends Scene {
   }
 
   private placeObject(constructorConfig: ObjectConfig, config: StuffObject, x: number, y: number) {
-    const { amount, id } = config
+    const { amount, type } = config
     const size = tileSize / 2
     const obj: Phaser.GameObjects.Image = this.lyingObjects.create(x * tileSize, y * tileSize, constructorConfig.view)
     obj.setDisplaySize(size, size)
     obj.setAngle(getRandom(360))
     obj.setData('amount', amount)
-    obj.setData('id', id)
+    obj.setData('id', type)
     obj.setInteractive()
   }
 
@@ -447,7 +447,7 @@ export class MainScene extends Scene {
 
       if (firstHit) {
         const obj = {
-          id: firstHit.getData('id'),
+          type: firstHit.getData('id'),
           amount: firstHit.getData('amount'),
         }
         this.player.addToContainer(obj)

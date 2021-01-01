@@ -10,34 +10,18 @@ export function generateInitialStructure(): GameState {
     },
     player: {
       position: [50, 50] as [number, number],
-      backpack: [
-        { id: 'frame', amount: 20 },
-        { id: 'frame', amount: 20 },
-        { id: 'frame', amount: 20 },
-        { id: 'frame', amount: 20 },
-        { id: 'frame', amount: 20 },
-        { id: 'frame', amount: 20 },
-        { id: 'frame', amount: 20 },
-        { id: 'frame', amount: 20 },
-        { id: 'frame', amount: 20 },
-        { id: 'frame', amount: 20 },
-        { id: 'frame', amount: 20 },
-        { id: 'frame', amount: 20 },
-        { id: 'frame', amount: 20 },
-        { id: 'frame', amount: 20 },
-        { id: 'frame', amount: 20 },
-      ],
+      backpack: [{ type: 'frame', amount: 20 }],
       belt: [],
     },
     map: {
       '51|51': {
         kind: 'stuff',
-        id: 'frame',
+        type: 'frame',
         amount: 20,
       },
       '49|49': {
         kind: 'construction',
-        id: 'crate',
+        type: 'crate',
         angle: 0,
         health: 100,
         step: 0,
@@ -45,7 +29,7 @@ export function generateInitialStructure(): GameState {
           content: [
             {
               kind: 'stuff',
-              id: 'ironPlate',
+              type: 'ironPlate',
               amount: 20,
             },
           ],

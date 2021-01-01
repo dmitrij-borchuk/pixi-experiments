@@ -1,3 +1,8 @@
+import { Scene } from 'phaser'
+
+export type Layer = 'floor' | 'walls' | 'pipes' | 'cables' | 'stuff'
+export type GameEvent = `placedObject.${Layer}`
+
 export interface BuildVariant {
   // TODO:
   // titleKey: string
@@ -40,7 +45,7 @@ export interface StuffObjectConfig extends ObjectConfig {
 }
 
 export interface ObjectInstanceDescriptor {
-  id: string
+  type: string
   amount: number
 }
 
@@ -48,7 +53,7 @@ export type Position = [number, number]
 
 export interface ConstructedObject {
   kind: 'construction'
-  id: string
+  type: string
   step: number
   angle: number
   health: number
@@ -68,7 +73,7 @@ export interface PlayerState {
 
 export interface StuffObject {
   kind: 'stuff'
-  id: string
+  type: string
   amount: number
 }
 
@@ -81,4 +86,11 @@ export interface GameState {
   }
   map: Record<string, ConstructedObject | StuffObject>
   player: PlayerState
+}
+
+export interface BaseScene extends Scene {
+  map: {
+    layers: Record<Layer, Map<string, ConstructedObject | StuffObject>>
+  }
+  applyWorld: (world: GameState) => void
 }

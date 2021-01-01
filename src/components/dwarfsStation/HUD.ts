@@ -84,7 +84,7 @@ export class HUDScene extends Phaser.Scene {
     }
     const index = firstHit.getData('index')
     this.belt[index] = {
-      id: gameObject.getData('id'),
+      type: gameObject.getData('id'),
       amount: gameObject.getData('amount'),
     }
     gameObject.destroy()
@@ -136,13 +136,13 @@ export class HUDScene extends Phaser.Scene {
       this.beltContent.add(slot)
 
       const descriptor = this.belt[i]
-      const constructorConfig = objectsConfig[descriptor?.id]
+      const constructorConfig = objectsConfig[descriptor?.type]
       if (constructorConfig) {
         const size = cellWidth * 0.7
         const obj: Phaser.GameObjects.Image = this.add.image(x, y, constructorConfig.view)
         obj.setDisplaySize(size, size)
         obj.setData('amount', descriptor.amount)
-        obj.setData('id', descriptor.id)
+        obj.setData('id', descriptor.type)
         this.beltContent.add(obj)
       }
       slot.on('pointerdown', () => this.onBeltSlotClick(i))
@@ -185,9 +185,9 @@ export class HUDScene extends Phaser.Scene {
 
     const tileSize = 60
     list?.forEach((item, i) => {
-      const { id, amount } = item
+      const { type, amount } = item
 
-      const constructorConfig = objectsConfig[id]
+      const constructorConfig = objectsConfig[type]
 
       if (constructorConfig) {
         let size = tileSize * 0.9
@@ -207,7 +207,7 @@ export class HUDScene extends Phaser.Scene {
         itemContainer.setSize(size, size)
         itemContainer.setInteractive()
         itemContainer.setData('amount', amount)
-        itemContainer.setData('id', id)
+        itemContainer.setData('id', type)
         this.input.setDraggable(itemContainer)
         this.container.add(itemContainer)
       }
