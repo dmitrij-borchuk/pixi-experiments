@@ -1,7 +1,7 @@
 import { Scene } from 'phaser'
 
 export type Layer = 'floor' | 'walls' | 'pipes' | 'cables' | 'stuff'
-export type GameEvent = `placedObject.${Layer}`
+export type GameEvent = `placedObject.${Layer}` | `objectBuilt.${Layer}` | 'assetsLoaded'
 
 export interface BuildVariant {
   // TODO:
@@ -84,13 +84,13 @@ export interface GameState {
     h: number
     w: number
   }
-  map: Record<string, ConstructedObject | StuffObject>
+  map: {
+    layers: Record<Layer, Map<string, ConstructedObject | StuffObject>>
+  }
   player: PlayerState
 }
 
 export interface BaseScene extends Scene {
-  map: {
-    layers: Record<Layer, Map<string, ConstructedObject | StuffObject>>
-  }
+  map: GameState['map']
   applyWorld: (world: GameState) => void
 }

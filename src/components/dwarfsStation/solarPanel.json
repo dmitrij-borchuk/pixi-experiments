@@ -1,0 +1,39 @@
+{
+  "id": "solarPanel",
+  "displayNameKey": "solarPanel",
+  "defaultDisplayName": "Solar panel",
+  "isContainer": false,
+  "isDroppable": true,
+  "isBuildable": true,
+  "view": "solarPanel",
+  "stack": 1,
+  "maxHealth": 100,
+  "variants": {
+    "solarPanel": {
+      "buildProps": {
+        "isSolid": true,
+        "layer": "walls",
+        "steps": [
+          {
+            "gasOpaque": true,
+            "lightOpaque": true,
+            "view": "solarPanelWithoutGlass"
+          },
+          {
+            "toMake": {
+              "ingredients": [
+                {
+                  "name": "glass",
+                  "amount": 1
+                }
+              ]
+            },
+            "gasOpaque": true,
+            "lightOpaque": true,
+            "view": "solarPanel"
+          }
+        ]
+      }
+    }
+  }
+}

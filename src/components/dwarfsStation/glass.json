@@ -1,0 +1,10 @@
+{
+  "id": "glass",
+  "displayNameKey": "glass",
+  "defaultDisplayName": "Glass",
+  "isContainer": false,
+  "view": "glass",
+  "isDroppable": true,
+  "stack": 50,
+  "maxHealth": 100
+}

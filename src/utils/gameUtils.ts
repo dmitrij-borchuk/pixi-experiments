@@ -143,6 +143,7 @@ export function preloadAssets(scene: Scene, assets: Asset[]) {
   const onComplete = () => {
     progressBar.destroy()
     progressBox.destroy()
+    scene.events.emit('assetsLoaded')
   }
 
   function setProgress() {

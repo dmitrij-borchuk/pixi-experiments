@@ -25,6 +25,7 @@ import {
   ConstructedObject,
   ConstructionObjectConfig,
   StuffObjectConfig,
+  BaseScene,
 } from './types'
 import { SCENES } from './constants'
 
@@ -56,7 +57,7 @@ export function addBuildPreview(scene: MainScene) {
       const { worldX, worldY } = scene.game.input.mousePointer
       const [x, y] = getTileFomCoords(tileSize, tileSize, worldX, worldY)
       buildPreview.setPosition(x * tileSize, y * tileSize)
-      if (!scene.map[getMapKey(x, y)] && scene.isReachableDistance(worldX, worldY)) {
+      if (!scene.map.layers.walls.has(getMapKey(x, y)) && scene.isReachableDistance(worldX, worldY)) {
         img.setTint(0x55ff55, 0x55ff55, 0x55ff55, 0x55ff55)
       } else {
         img.setTint(0xff5555, 0xff5555, 0xff5555, 0xff5555)
@@ -130,15 +131,22 @@ export function addBuildPreview(scene: MainScene) {
 }
 
 // TODO: disable context menu
-export class MainScene extends Scene {
+export class MainScene extends Scene implements BaseScene {
   public player!: Player
   private onUpdateListeners: ((time: number, delta: number) => void)[] = []
   private lyingObjects!: Phaser.GameObjects.Group
   private constructedObjects!: Phaser.Physics.Arcade.StaticGroup
   private currentTool?: ObjectInstanceDescriptor
   private world!: GameState['world']
-  // TODO: use `Map`
-  public map: GameState['map'] = {}
+  public map: GameState['map'] = {
+    layers: {
+      floor: new Map(),
+      walls: new Map(),
+      pipes: new Map(),
+      cables: new Map(),
+      stuff: new Map(),
+    },
+  }
   private gameObjectMap: Map<string, Phaser.Physics.Arcade.Image> = new Map()
   private buildPreview!: ReturnType<typeof addBuildPreview>
 
@@ -182,17 +190,46 @@ export class MainScene extends Scene {
         name: TEXTURES.ironWall,
         data: name2texture.ironWall,
       },
+      {
+        type: 'base64',
+        name: TEXTURES.solarPanel,
+        data: name2texture.solarPanel,
+      },
+      {
+        type: 'base64',
+        name: TEXTURES.solarPanelWithoutGlass,
+        data: name2texture.solarPanelWithoutGlass,
+      },
+      {
+        type: 'base64',
+        name: TEXTURES.glass,
+        data: name2texture.glass,
+      },
     ])
   }
   create() {
-    const initialData = this.loadState()
-    this.world = initialData.world
-    this.map = initialData.map
-    const worldSize = initialData.world
     this.lyingObjects = new Phaser.GameObjects.Group(this)
     this.constructedObjects = this.physics.add.staticGroup()
 
+    // Background
+    this.onUpdateListeners.push(applyDynamicTileBackground(this, TEXTURES.stoneFloor))
+
+    this.buildPreview = addBuildPreview(this)
+
     this.scene.launch(SCENES.HUD)
+  }
+  update(time: number, delta: number) {
+    this.onUpdateListeners.forEach((cb) => {
+      cb(time, delta)
+    })
+  }
+
+  public applyWorld(world: GameState) {
+    // const initialData = this.loadState()
+    const initialData = world
+    this.world = initialData.world
+    this.map = initialData.map
+    const worldSize = initialData.world
 
     // Set world bounds
     this.physics.world.setBounds(
@@ -202,23 +239,12 @@ export class MainScene extends Scene {
       worldSize.h * tileSize
     )
 
-    // Background
-    this.onUpdateListeners.push(applyDynamicTileBackground(this, TEXTURES.stoneFloor))
-
     this.addPlayer(initialData.player)
-
     applyCameraToSprite(this, this.player)
 
     this.makeInitialStructure(initialData.map)
 
     this.addEvents()
-
-    this.buildPreview = addBuildPreview(this)
-  }
-  update(time: number, delta: number) {
-    this.onUpdateListeners.forEach((cb) => {
-      cb(time, delta)
-    })
   }
 
   private onBeltSlotClick(descriptor?: ObjectInstanceDescriptor) {
@@ -255,9 +281,7 @@ export class MainScene extends Scene {
   }
 
   private makeInitialStructure(map: GameState['map']) {
-    const keys = Object.keys(map)
-    keys.forEach((key) => {
-      const config = map[key]
+    map.layers.walls.forEach((config, key) => {
       const constructorConfig = objectsConfig[config.type]
       if (constructorConfig) {
         const [x, y] = parseMapKey(key)
@@ -303,7 +327,7 @@ export class MainScene extends Scene {
         return this.buildObject(toolConfig, x, y)
       }
 
-      const item = this.map[getMapKey(x, y)]
+      const item = this.map.layers.walls.get(getMapKey(x, y))
       if (item) {
         const itemConstructorConfig = objectsConfig[item.type]
         if (item.kind !== 'construction' || !itemConstructorConfig.isBuildable) {
@@ -344,6 +368,10 @@ export class MainScene extends Scene {
 
           this.saveState()
 
+          if (!variants[variant].buildProps.steps[item.step + 1]) {
+            this.events.emit('objectBuilt.walls', item)
+          }
+
           return
         }
 
@@ -378,7 +406,7 @@ export class MainScene extends Scene {
 
   private buildObject(constructorConfig: ConstructionObjectConfig, x: number, y: number) {
     const key = getMapKey(x, y)
-    if (!this.map[key]) {
+    if (!this.map.layers.walls.has(key)) {
       const data: ConstructedObject = {
         kind: 'construction',
         angle: 0,
@@ -388,7 +416,8 @@ export class MainScene extends Scene {
         variant: this.buildPreview.getVariant(),
         ingredients: [],
       }
-      this.map[key] = data
+      this.map.layers.walls.set(key, data)
+      this.events.emit('placedObject.walls', data)
       this.placeConstruction(constructorConfig, data, x, y)
       this.saveState()
     }
@@ -456,7 +485,7 @@ export class MainScene extends Scene {
         // TODO: it could be animated with flying to player and scaling to 0
         firstHit.destroy()
         const [x, y] = getTileFomCoords(tileSize, tileSize, firstHit.x, firstHit.y)
-        delete this.map[getMapKey(x, y)]
+        this.map.layers.walls.delete(getMapKey(x, y))
       }
     }
   }
