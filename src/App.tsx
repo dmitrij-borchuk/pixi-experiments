@@ -10,6 +10,10 @@ import { Defend } from './components/defend/Defend'
 import { Station } from './components/station/Station'
 import { Survival } from './components/shipSurvival/Survival'
 import { DwarfsStation } from './components/dwarfsStation'
+import { RotTest } from './components/rotTest'
+import { X2d } from './components/x2d'
+
+// TODO: add code generation
 
 export default function App() {
   return (
@@ -47,6 +51,12 @@ export default function App() {
             <li>
               <Link to="/dwarfsStation">Dwarfs Station</Link>
             </li>
+            <li>
+              <Link to="/rotTest">Rot test</Link>
+            </li>
+            <li>
+              <Link to="/x2d">X2d</Link>
+            </li>
           </ul>
         </nav>
       </header>
@@ -78,6 +88,12 @@ export default function App() {
           </Route>
           <Route path="/dwarfsStation">
             <DwarfsStation />
+          </Route>
+          <Route path="/rotTest">
+            <RotTest />
+          </Route>
+          <Route path="/x2d">
+            <X2d />
           </Route>
 
           <Route path="/">
