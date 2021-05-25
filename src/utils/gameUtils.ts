@@ -79,9 +79,9 @@ export function applyMovement(scene: Scene, sprite: Phaser.Physics.Arcade.Sprite
   }
 }
 
-export function applyCameraToSprite(scene: Scene, sprite: Phaser.Physics.Arcade.Sprite) {
-  scene.cameras.main.zoom = 0.5
-  scene.cameras.main.startFollow(sprite)
+export function applyCameraToSprite(scene: Scene, object: Phaser.GameObjects.GameObject, zoom = 0.5) {
+  scene.cameras.main.zoom = zoom
+  scene.cameras.main.startFollow(object)
 }
 
 export function getTileFomCoords(tileW: number, tileH: number, x: number, y: number) {

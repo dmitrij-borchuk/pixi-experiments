@@ -12,6 +12,7 @@ import { Survival } from './components/shipSurvival/Survival'
 import { DwarfsStation } from './components/dwarfsStation'
 import { RotTest } from './components/rotTest'
 import { X2d } from './components/x2d'
+import { PixelDwarfStation } from './components/pixelDwarfStation/PixelDwarfStation'
 
 // TODO: add code generation
 
@@ -57,6 +58,9 @@ export default function App() {
             <li>
               <Link to="/x2d">X2d</Link>
             </li>
+            <li>
+              <Link to="/pixelDwarfStation">Pixel Dwarf Station</Link>
+            </li>
           </ul>
         </nav>
       </header>
@@ -94,6 +98,9 @@ export default function App() {
           </Route>
           <Route path="/x2d">
             <X2d />
+          </Route>
+          <Route path="/pixelDwarfStation">
+            <PixelDwarfStation />
           </Route>
 
           <Route path="/">

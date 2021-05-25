@@ -17,6 +17,8 @@ import { getRandom } from '../../utils/random'
 // import { objectsConfig } from './objectsConfig'
 import { HUDScene } from './HUD'
 import { Ship } from './ship'
+import space from './assets/space.gif'
+import { Bullet } from './bullet'
 // import {
 //   GameState,
 //   StuffObject,
@@ -134,7 +136,7 @@ import { Ship } from './ship'
 // TODO: disable context menu
 export class MainScene extends Scene {
   // public player!: Player
-  // private onUpdateListeners: ((time: number, delta: number) => void)[] = []
+  private onUpdateListeners: ((time: number, delta: number) => void)[] = []
   // private lyingObjects!: Phaser.GameObjects.Group
   // private constructedObjects!: Phaser.Physics.Arcade.StaticGroup
   // private currentTool?: ObjectInstanceDescriptor
@@ -155,82 +157,82 @@ export class MainScene extends Scene {
   constructor() {
     super({ key: 'main', active: false })
   }
-  // preload() {
-  //   preloadAssets(this, [
-  //     {
-  //       type: 'image',
-  //       name: TEXTURES.stoneFloor,
-  //       data: name2texture.stoneFloor,
-  //     },
-  //     {
-  //       type: 'base64',
-  //       name: TEXTURES.player,
-  //       data: name2texture.player,
-  //     },
-  //     {
-  //       type: 'base64',
-  //       name: TEXTURES.frame,
-  //       data: name2texture.frame,
-  //     },
-  //     {
-  //       type: 'base64',
-  //       name: TEXTURES.ironPlate,
-  //       data: name2texture.ironPlate,
-  //     },
-  //     {
-  //       type: 'base64',
-  //       name: TEXTURES.crate,
-  //       data: name2texture.crate,
-  //     },
-  //     {
-  //       type: 'base64',
-  //       name: TEXTURES.ironFloor,
-  //       data: name2texture.ironFloor,
-  //     },
-  //     {
-  //       type: 'base64',
-  //       name: TEXTURES.ironWall,
-  //       data: name2texture.ironWall,
-  //     },
-  //     {
-  //       type: 'base64',
-  //       name: TEXTURES.solarPanel,
-  //       data: name2texture.solarPanel,
-  //     },
-  //     {
-  //       type: 'base64',
-  //       name: TEXTURES.solarPanelWithoutGlass,
-  //       data: name2texture.solarPanelWithoutGlass,
-  //     },
-  //     {
-  //       type: 'base64',
-  //       name: TEXTURES.glass,
-  //       data: name2texture.glass,
-  //     },
-  //   ])
-  // }
+  preload() {
+    preloadAssets(this, [
+      {
+        type: 'image',
+        name: 'space',
+        data: space,
+      },
+      //     {
+      //       type: 'base64',
+      //       name: TEXTURES.player,
+      //       data: name2texture.player,
+      //     },
+      //     {
+      //       type: 'base64',
+      //       name: TEXTURES.frame,
+      //       data: name2texture.frame,
+      //     },
+      //     {
+      //       type: 'base64',
+      //       name: TEXTURES.ironPlate,
+      //       data: name2texture.ironPlate,
+      //     },
+      //     {
+      //       type: 'base64',
+      //       name: TEXTURES.crate,
+      //       data: name2texture.crate,
+      //     },
+      //     {
+      //       type: 'base64',
+      //       name: TEXTURES.ironFloor,
+      //       data: name2texture.ironFloor,
+      //     },
+      //     {
+      //       type: 'base64',
+      //       name: TEXTURES.ironWall,
+      //       data: name2texture.ironWall,
+      //     },
+      //     {
+      //       type: 'base64',
+      //       name: TEXTURES.solarPanel,
+      //       data: name2texture.solarPanel,
+      //     },
+      //     {
+      //       type: 'base64',
+      //       name: TEXTURES.solarPanelWithoutGlass,
+      //       data: name2texture.solarPanelWithoutGlass,
+      //     },
+      //     {
+      //       type: 'base64',
+      //       name: TEXTURES.glass,
+      //       data: name2texture.glass,
+      //     },
+    ])
+  }
   create() {
     // const textObj = this.add.text(200, 200, 'Test text', {
     //   fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif',
     // })
-    this.ship = new Ship(this)
-    // this.physics.add.existing(this.ship)
-    this.ship.create()
     //   this.lyingObjects = new Phaser.GameObjects.Group(this)
     //   this.constructedObjects = this.physics.add.staticGroup()
 
-    //   // Background
-    //   this.onUpdateListeners.push(applyDynamicTileBackground(this, TEXTURES.stoneFloor))
+    // Background
+    this.onUpdateListeners.push(applyDynamicTileBackground(this, 'space'))
 
+    this.ship = new Ship(this)
+    this.ship.create()
+    applyCameraToSprite(this, this.ship.polygon, 1)
     //   this.buildPreview = addBuildPreview(this)
 
     //   this.scene.launch(SCENES.HUD)
   }
   update(time: number, delta: number) {
     this.ship.update(time, delta)
-    //   this.onUpdateListeners.forEach((cb) => {
-    //     cb(time, delta)
-    //   })
+    this.onUpdateListeners.forEach((cb) => {
+      cb(time, delta)
+    })
   }
 
   // public applyWorld(world: GameState) {
@@ -240,8 +242,8 @@ export class MainScene extends Scene {
   //   this.map = initialData.map
   //   const worldSize = initialData.world
 
-  //   // Set world bounds
-  //   this.physics.world.setBounds(
+  //   // Set world bounworldds
+  //   this.physics..setBounds(
   //     worldSize.x * tileSize,
   //     worldSize.y * tileSize,
   //     worldSize.w * tileSize,
@@ -249,7 +251,7 @@ export class MainScene extends Scene {
   //   )
 
   //   this.addPlayer(initialData.player)
-  //   applyCameraToSprite(this, this.player)
+  // applyCameraToSprite(this, this.player)
 
   //   this.makeInitialStructure(initialData.map)
 

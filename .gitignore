@@ -21,3 +21,8 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+src/components/defend/assets/sci-fi-interface-textures.zip
+src/components/defend/assets/Tatermand Machines.zip
+src/components/shipSurvival/assets/sci-fi-interface-textures.zip
+src/components/shipSurvival/assets/Tatermand Machines.zip
+.eslintcache
