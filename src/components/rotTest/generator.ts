@@ -15,7 +15,7 @@ export interface Room {
 
 let i = 0
 export function generateStation(width: number, height: number, options: Partial<Options> = {}): [Room[], Corridor[]] {
-  const { corridorWidth = 1, minPartVolume = 100, minSize = 5 } = options
+  const { corridorWidth = 1, minSize = 5 } = options
   const isHorizontal = RNG.getUniform() > 0.5
   const [rooms, corridors] = divideRoomRecursively(
     {

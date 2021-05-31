@@ -1,8 +1,7 @@
 import { Game } from './game'
 import { GameMap } from './gameMap'
 import { GameObject, GameObjectState, objectKey2class } from './gameObject'
-import { Dwarf } from './items/Dwarf'
-import { WallBlueprint } from './items/Wall'
+import { BlastDoor } from './items/BlastDoor'
 import { Log } from './log'
 import { GameObjectKey } from './mapItems'
 import { TaskManager, TaskManagerState } from './taskManager'
@@ -31,7 +30,6 @@ export class Level {
   private time = 0
 
   constructor(private canvas: HTMLCanvasElement, state: LevelState, private log: Log, private game: Game) {
-    console.log('=-= level state', state)
     this.canvas = canvas
     const ctx = canvas.getContext('2d')
     if (!ctx) {
@@ -57,7 +55,7 @@ export class Level {
   }
 
   public stop() {
-    this.isRunning = true
+    this.isRunning = false
   }
 
   private frame() {
@@ -129,8 +127,12 @@ export class Level {
       steelPlate: '#444',
     }
 
-    ctx.fillStyle = item2color[item.key]
-    ctx.fillRect(x * scale + this.mapOffset.x, y * scale + this.mapOffset.y, scale, scale)
+    if (item.render) {
+      item.render(ctx, this.scale, this.mapOffset)
+    } else {
+      ctx.fillStyle = item2color[item.key]
+      ctx.fillRect(x * scale + this.mapOffset.x, y * scale + this.mapOffset.y, scale, scale)
+    }
   }
 
   // public getUnassignedTask() {
@@ -142,13 +144,13 @@ export class Level {
     const mapY = Math.floor((y - this.mapOffset.y) / this.scale)
 
     const items = this.map.getItems(mapX, mapY).filter((i) => i.isConstruction)
-    console.log('=-= items', this.map.getItems(x, y))
+    // console.log('=-= items', this.map.getItems(x, y))
     if (items.length > 0) {
       return
     }
 
     this.map.addItem(
-      new WallBlueprint(
+      new BlastDoor(
         {
           x: mapX,
           y: mapY,
@@ -159,16 +161,28 @@ export class Level {
         }
       )
     )
+    // this.map.addItem(
+    //   new WallBlueprint(
+    //     {
+    //       x: mapX,
+    //       y: mapY,
+    //     },
+    //     {
+    //       log: this.log,
+    //       taskManager: this.taskManager,
+    //     }
+    //   )
+    // )
 
-    this.taskManager.addTask({
-      type: 'build',
-      details: {
-        x: mapX,
-        y: mapY,
-      },
-      assignee: null,
-      name: 'Building wall',
-    })
+    // this.taskManager.addTask({
+    //   type: 'build',
+    //   details: {
+    //     x: mapX,
+    //     y: mapY,
+    //   },
+    //   assignee: null,
+    //   name: 'Building wall',
+    // })
   }
 
   public getState(): LevelState {

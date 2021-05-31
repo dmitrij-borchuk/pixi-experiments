@@ -22,7 +22,6 @@ export class GameMap {
     this.items = items.map((i) => {
       const Constructor = objectKey2class[i.key]
       const instance = new Constructor() as GameObject
-      console.log('=-= instance', instance)
       if (!instance.isWalkable) {
         this.pathGrid.setWalkableAt(i.x, i.y, false)
       }

@@ -16,6 +16,8 @@ export class BlastDoor implements GameObject {
   private isOpen = false
   private openDelay = 120
   private lastOpenAt = 0
+  public isWalkable = true
+  public isConstruction = true
 
   constructor(state: GameObjectConstructor, deps: GameObjectDependency) {
     this.x = state.x
@@ -31,8 +33,6 @@ export class BlastDoor implements GameObject {
       id: this.id,
     }
   }
-  public isWalkable = true
-  public isConstruction = false
 
   public tick(time: number, map: GameMap, level: Level, game: Game) {
     const coords = [
@@ -55,11 +55,25 @@ export class BlastDoor implements GameObject {
   private checkNeighborsMovement(map: GameMap, x: number, y: number) {
     const neighbors = map.getItems(x, y).map((i) => i.id)
     const previousNeighbors = this.lastNeighbors[`${x}:${y}`] || []
+    this.lastNeighbors[`${x}:${y}`] = neighbors
 
     if (previousNeighbors.length !== neighbors.length) {
       return true
     }
 
-    return previousNeighbors.every((pn) => neighbors.includes(pn))
+    return !previousNeighbors.every((pn) => neighbors.includes(pn))
+  }
+
+  public render(ctx: CanvasRenderingContext2D, scale: number, mapOffset: { x: number; y: number }) {
+    ctx.fillStyle = '#000'
+    console.log('=-= this.isOpen', this.isOpen)
+    if (!this.isOpen) {
+      ctx.strokeRect(this.x * scale + mapOffset.x, this.y * scale + mapOffset.y, scale / 2, scale)
+      ctx.strokeRect(this.x * scale + mapOffset.x + scale / 2, this.y * scale + mapOffset.y, scale / 2, scale)
+      return
+    }
+
+    ctx.strokeRect(this.x * scale + mapOffset.x, this.y * scale + mapOffset.y, scale / 4, scale)
+    ctx.strokeRect(this.x * scale + mapOffset.x + scale - scale / 4, this.y * scale + mapOffset.y, scale / 4, scale)
   }
 }

@@ -7,9 +7,9 @@ const isSamePoints = (p1: IPoint, p2: IPoint) => {
   return p1.x === p2.x && p1.y === p2.y
 }
 
-interface IRenderer {
-  app: PIXI.Application
-}
+// interface IRenderer {
+//   app: PIXI.Application
+// }
 export const get = () => {
   // The application will create a renderer using WebGL, if possible,
   // with a fallback to a canvas render. It will also setup the ticker

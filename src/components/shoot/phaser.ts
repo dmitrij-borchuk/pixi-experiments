@@ -1,4 +1,4 @@
-import Phaser, { Scene } from 'phaser'
+import Phaser from 'phaser'
 import { getRoom, IRoom, IPoint } from '../../utils/roomGenerator'
 import bunnyImg from '../../assets/bunny.png'
 import wallImg from '../../assets/wall50.png'

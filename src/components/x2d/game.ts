@@ -1,24 +1,24 @@
-import Phaser, { Scene } from 'phaser'
+import { Scene } from 'phaser'
 import {
   applyCameraToSprite,
-  applyCollider,
+  // applyCollider,
   applyDynamicTileBackground,
-  applyMovement,
-  getFirstHit,
-  getTileFomCoords,
-  loadGame,
+  // applyMovement,
+  // getFirstHit,
+  // getTileFomCoords,
+  // loadGame,
   preloadAssets,
-  saveGame,
+  // saveGame,
 } from '../../utils/gameUtils'
 // import { generateInitialStructure } from './generator'
-import { getRandom } from '../../utils/random'
+// import { getRandom } from '../../utils/random'
 // import { Player } from './Player'
 // import { name2texture, TEXTURES } from './textures'
 // import { objectsConfig } from './objectsConfig'
-import { HUDScene } from './HUD'
+// import { HUDScene } from './HUD'
 import { Ship } from './ship'
 import space from './assets/space.gif'
-import { Bullet } from './bullet'
+// import { Bullet } from './bullet'
 // import {
 //   GameState,
 //   StuffObject,

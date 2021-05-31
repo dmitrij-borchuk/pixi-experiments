@@ -1,11 +1,10 @@
 import { EventEmitter } from 'events'
 import { nanoid } from 'nanoid'
-import { Dwarf } from './items/Dwarf'
 import { Level, LevelState } from './level'
 import { Log } from './log'
 import { GameObjectKey } from './mapItems'
 
-interface GameState {
+export interface GameState {
   level: LevelState
 }
 export class Game extends EventEmitter {

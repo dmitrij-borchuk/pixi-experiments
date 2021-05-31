@@ -40,9 +40,9 @@ function parseMapKey(key: string) {
   return key.split(keySeparator).map((str) => parseInt(str, 10))
 }
 
-function isInteractive(constructorConfig: ObjectConfig) {
-  return constructorConfig.isContainer
-}
+// function isInteractive(constructorConfig: ObjectConfig) {
+//   return constructorConfig.isContainer
+// }
 
 export function addBuildPreview(scene: MainScene) {
   let buildPreview: Phaser.GameObjects.Container | null = null

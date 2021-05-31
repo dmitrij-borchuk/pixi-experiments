@@ -30,6 +30,7 @@ export interface GameObject extends GameObjectState {
   isWalkable: boolean
   isConstruction: boolean
   getState: () => GameObjectState
+  render?: (ctx: CanvasRenderingContext2D, scale: number, mapOffset: { x: number; y: number }) => void
 }
 
 // TODO: fix any

@@ -1,24 +1,24 @@
-import { MainScene } from './scenes/game'
+// import { MainScene } from './scenes/game'
 import { Display, Map } from 'rot-js'
-import { divideRoom, generateStation } from './generator'
+import { generateStation } from './generator'
 
-const config: Phaser.Types.Core.GameConfig = {
-  type: Phaser.AUTO,
-  parent: 'phaser-example',
-  width: 800,
-  height: 600,
-  physics: {
-    default: 'arcade',
-    arcade: {
-      gravity: { y: 0 },
-      // debug: true,
-    },
-  },
-  scene: [MainScene],
-  render: {
-    pixelArt: true,
-  },
-}
+// const config: Phaser.Types.Core.GameConfig = {
+//   type: Phaser.AUTO,
+//   parent: 'phaser-example',
+//   width: 800,
+//   height: 600,
+//   physics: {
+//     default: 'arcade',
+//     arcade: {
+//       gravity: { y: 0 },
+//       // debug: true,
+//     },
+//   },
+//   scene: [MainScene],
+//   render: {
+//     pixelArt: true,
+//   },
+// }
 
 export const app = {
   init: () => {
@@ -87,7 +87,7 @@ export const app = {
     //   var y = parseInt(parts[1])
     //   display.draw(x, y, map[key], null, null)
     // }
-    const [rooms, corridors] = generateStation(width, height, {
+    const [rooms] = generateStation(width, height, {
       corridorWidth: 3,
       minSize: 15,
     })
