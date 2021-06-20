@@ -1,9 +1,24 @@
 import { nanoid } from 'nanoid'
 import { GameState } from '../components/pixelDwarfStation/game'
 import { GameObjectKey } from '../components/pixelDwarfStation/mapItems'
+import { groupBy } from './groupBy'
 import { generator } from './noise'
 
-export function generateSpaceStation(threshold: number) {
+type Coords = {
+  x: number
+  y: number
+}
+export type BlockGeneratorObject = Coords & {
+  type: string
+  id: string
+}
+export interface BlockGeneratorResult {
+  height: number
+  width: number
+  objects: BlockGeneratorObject[]
+}
+export function generateHull(): BlockGeneratorResult {
+  // TODO: fill inner gaps
   const noise = getNoise(10)
   const islands = generateIslands(noise, 2, 10)
 
@@ -13,7 +28,7 @@ export function generateSpaceStation(threshold: number) {
   if (!bigger) {
     throw new Error("Can't generate station, please try again later")
   }
-  const scaleFactor = 5
+  const scaleFactor = 20
   const size = 50
   const hull = getHull(bigger, scaleFactor)
   const points = Object.keys(hull)
@@ -26,14 +41,121 @@ export function generateSpaceStation(threshold: number) {
   const walls = centralizedPoints.map(({ x, y }) => ({
     x: x,
     y: y,
+    type: 'wall',
+    id: nanoid(),
+  }))
+
+  const station = {
+    height: size,
+    width: size,
+    objects: walls,
+  }
+
+  return station
+}
+export function generateRooms(hull: BlockGeneratorResult) {
+  // const stationSize = getBlockSize(hull)
+
+  const innerBlocks = getInnerBlocks(hull)
+  // console.log('=-= stationSize', stationSize)
+  // console.log('=-= innerBlocks', innerBlocks)
+
+  return {
+    ...hull,
+    meta: {
+      innerBlocks,
+    },
+  }
+}
+function getBlockSize(block: BlockGeneratorResult) {
+  const bounding = getBlockBounding(block)
+  if (!bounding) {
+    return {
+      x: 0,
+      y: 0,
+    }
+  }
+  if (block.objects.length === 1) {
+    return {
+      x: 1,
+      y: 1,
+    }
+  }
+
+  return {
+    x: bounding.xMax - bounding.xMin,
+    y: bounding.yMax - bounding.yMin,
+  }
+}
+function getBlockBounding(block: BlockGeneratorResult) {
+  if (block.objects.length === 0) {
+    return null
+  }
+  const { x, y } = block.objects[0]
+  const borders = block.objects.reduce<{ xMin: number; yMin: number; xMax: number; yMax: number }>(
+    (acc, item) => {
+      return {
+        xMin: Math.min(item.x, acc.xMin),
+        yMin: Math.min(item.y, acc.yMin),
+        xMax: Math.max(item.x, acc.xMax),
+        yMax: Math.max(item.y, acc.yMax),
+      }
+    },
+    { xMin: x, yMin: y, xMax: x, yMax: y }
+  )
+
+  return borders
+}
+function getInnerBlocks(block: BlockGeneratorResult) {
+  const objectsByY = groupBy('y', block.objects)
+  const bounding = getBlockBounding(block)
+
+  if (!bounding) {
+    return []
+  }
+
+  const array: BlockGeneratorObject[] = []
+
+  for (let x = bounding.xMin; x < bounding.xMax; x++) {
+    for (let y = bounding.yMin; y < bounding.yMax; y++) {
+      if (isInner({ x, y }, objectsByY[y])) {
+        array.push({ x, y, type: 'yellow', id: nanoid() })
+      }
+    }
+  }
+
+  return array
+}
+// It works only for closed hull and without holes
+function isInner(object: Coords, coordsArray: Coords[]) {
+  if (coordsArray.length <= 1) {
+    throw new Error('At least two coords should be provided')
+  }
+
+  const xArray = coordsArray.map((c) => c.x)
+
+  if (xArray.includes(object.x)) {
+    return false
+  }
+
+  const minX = Math.min(...xArray)
+  const maxX = Math.max(...xArray)
+
+  return object.x > minX && object.x < maxX
+}
+export function generateSpaceStation(threshold: number) {
+  const result = generateHull()
+  const walls = result.objects.map(({ x, y }) => ({
+    x: x,
+    y: y,
     key: 'wall' as GameObjectKey,
     id: nanoid(),
   }))
 
   const station: GameState = {
     level: {
-      mapHeight: size,
-      mapWidth: size,
+      mapHeight: result.height,
+      mapWidth: result.width,
       tasksManager: {
         tasks: [],
       },
@@ -42,7 +164,6 @@ export function generateSpaceStation(threshold: number) {
   }
 
   return {
-    noise,
     station,
   }
 }
@@ -99,11 +220,6 @@ function getIslands(points: Point[], threshold: number) {
     islands: islands(grid),
     grid,
   }
-}
-
-type Coords = {
-  x: number
-  y: number
 }
 
 type Point = {

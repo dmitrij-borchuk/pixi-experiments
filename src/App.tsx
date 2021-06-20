@@ -13,6 +13,7 @@ import { DwarfsStation } from './components/dwarfsStation'
 import { RotTest } from './components/rotTest'
 import { X2d } from './components/x2d'
 import { PixelDwarfStation } from './components/pixelDwarfStation/PixelDwarfStation'
+import { GeneratorDebugger } from './components/generatorDebugger'
 
 // TODO: add code generation
 
@@ -61,6 +62,9 @@ export default function App() {
             <li>
               <Link to="/pixelDwarfStation">Pixel Dwarf Station</Link>
             </li>
+            <li>
+              <Link to="/generatorDebugger">Generator debugger</Link>
+            </li>
           </ul>
         </nav>
       </header>
@@ -101,6 +105,9 @@ export default function App() {
           </Route>
           <Route path="/pixelDwarfStation">
             <PixelDwarfStation />
+          </Route>
+          <Route path="/generatorDebugger">
+            <GeneratorDebugger />
           </Route>
 
           <Route path="/">

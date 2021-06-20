@@ -83,6 +83,9 @@ export class Dwarf implements GameObject {
     if (task.type === 'walk') {
       try {
         const path = map.findPath(this.x, this.y, task.details.x, task.details.y)
+        if (path.length === 0) {
+          throw new Error(`can't find path to ${task.details.x} ${task.details.y}`)
+        }
         const { isThere } = this.checkDestination(path)
 
         if (isThere) {

@@ -1,7 +1,8 @@
 import { Game } from './game'
 import { GameMap } from './gameMap'
 import { GameObject, GameObjectState, objectKey2class } from './gameObject'
-import { BlastDoor } from './items/BlastDoor'
+// import { BlastDoor } from './items/BlastDoor'
+import { Dwarf } from './items/Dwarf'
 import { Log } from './log'
 import { GameObjectKey } from './mapItems'
 import { TaskManager, TaskManagerState } from './taskManager'
@@ -101,13 +102,14 @@ export class Level {
 
   private render() {
     const map = this.map
+    // const spaceColor = '#070b40'
     this.ctx.fillStyle = '#eee'
 
     // const screenCenter = {
     //   x: Math.round(this.width / 2),
     //   y: Math.round(this.height / 2),
     // }
-    this.ctx.fillRect(this.mapOffset.x, this.mapOffset.y, this.map.width * this.scale, this.map.height * this.scale)
+    this.ctx.fillRect(0, 0, this.width, this.height)
 
     map.items.forEach((item) => {
       this.drawItem(item.x, item.y, item)
@@ -139,18 +141,18 @@ export class Level {
   //   return this.taskList.find((t) => t.assignee === null && t.isSuspended !== true)
   // }
 
+  // TODO: Rename
   public onCanvasClick(x: number, y: number) {
     const mapX = Math.floor((x - this.mapOffset.x) / this.scale)
     const mapY = Math.floor((y - this.mapOffset.y) / this.scale)
 
     const items = this.map.getItems(mapX, mapY).filter((i) => i.isConstruction)
-    // console.log('=-= items', this.map.getItems(x, y))
     if (items.length > 0) {
       return
     }
 
     this.map.addItem(
-      new BlastDoor(
+      new Dwarf(
         {
           x: mapX,
           y: mapY,
@@ -191,6 +193,13 @@ export class Level {
       tasksManager: this.taskManager.getState(),
       mapHeight: this.mapHeight,
       mapWidth: this.mapWidth,
+    }
+  }
+
+  public moveMap(xOffset: number, yOffset: number) {
+    this.mapOffset = {
+      x: this.mapOffset.x + xOffset,
+      y: this.mapOffset.y + yOffset,
     }
   }
 }

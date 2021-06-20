@@ -45,12 +45,32 @@ export class Game extends EventEmitter {
       this
     )
 
-    canvas.addEventListener('click', (e) => {
-      const x = e.offsetX
-      const y = e.offsetY
+    canvas.addEventListener('keydown', this.onKeyDown)
+    canvas.addEventListener('click', this.onCanvasClick)
+  }
 
-      this.level.onCanvasClick(x, y)
-    })
+  onCanvasClick = (e: MouseEvent) => {
+    const x = e.offsetX
+    const y = e.offsetY
+
+    this.level.onCanvasClick(x, y)
+  }
+
+  onKeyDown = (e: KeyboardEvent) => {
+    const step = 10
+
+    if (e.key === 'ArrowLeft') {
+      this.level.moveMap(step, 0)
+    }
+    if (e.key === 'ArrowRight') {
+      this.level.moveMap(-step, 0)
+    }
+    if (e.key === 'ArrowUp') {
+      this.level.moveMap(0, step)
+    }
+    if (e.key === 'ArrowDown') {
+      this.level.moveMap(0, -step)
+    }
   }
 
   save(): GameState {
@@ -67,5 +87,7 @@ export class Game extends EventEmitter {
 
   destroy() {
     this.level.stop()
+    this.canvas.removeEventListener('keydown', this.onKeyDown)
+    this.canvas.removeEventListener('click', this.onCanvasClick)
   }
 }
