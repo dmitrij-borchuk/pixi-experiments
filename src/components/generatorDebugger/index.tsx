@@ -16,10 +16,23 @@ export const GeneratorDebugger = () => {
     if (generatorManager) {
       try {
         const {
-          meta: { innerBlocks },
+          meta: { freeBlocks },
           ...result
         } = generatorManager.addRooms()
-        drawer?.setState({ ...result, objects: [...result.objects, ...innerBlocks] })
+        drawer?.setState({ ...result, objects: [...result.objects, ...freeBlocks] })
+      } catch (error) {
+        console.error(error)
+      }
+    }
+  }, [drawer, generatorManager])
+  const addSectors = useCallback(() => {
+    if (generatorManager) {
+      try {
+        const {
+          meta: { freeBlocks },
+          ...result
+        } = generatorManager.addSectors()
+        drawer?.setState({ ...result, objects: [...result.objects, ...freeBlocks] })
       } catch (error) {
         console.error(error)
       }
@@ -37,6 +50,7 @@ export const GeneratorDebugger = () => {
     <div>
       <div>
         <button onClick={onNewHull}>New hull</button>
+        <button onClick={addSectors}>Add sectors</button>
         <button onClick={addRooms}>Add rooms</button>
       </div>
       <canvas ref={canvasRef} width="800" height="600" tabIndex={0} />

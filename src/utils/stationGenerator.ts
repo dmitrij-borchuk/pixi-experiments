@@ -3,6 +3,7 @@ import { GameState } from '../components/pixelDwarfStation/game'
 import { GameObjectKey } from '../components/pixelDwarfStation/mapItems'
 import { groupBy } from './groupBy'
 import { generator } from './noise'
+import { getRandom } from './random'
 
 type Coords = {
   x: number
@@ -53,46 +54,130 @@ export function generateHull(): BlockGeneratorResult {
 
   return station
 }
-export function generateRooms(hull: BlockGeneratorResult) {
-  // const stationSize = getBlockSize(hull)
+type GenerateRoomsConfig = Parameters<typeof generateRoom>[1]
+export function generateRooms(hull: BlockGeneratorResult, config?: GenerateRoomsConfig) {
+  let preventInfiniteCount = 100
+  let freeBlocks = getInnerBlocks(hull)
+  let objects = hull.objects
+  while (freeBlocks.length > 0) {
+    const room = generateRoom(freeBlocks, config)
+    objects = objects.concat(room.walls)
+    freeBlocks = room.outerBlocks
 
-  const innerBlocks = getInnerBlocks(hull)
-  // console.log('=-= stationSize', stationSize)
-  // console.log('=-= innerBlocks', innerBlocks)
+    if (preventInfiniteCount <= 0) {
+      break
+    }
+    preventInfiniteCount--
+  }
 
   return {
     ...hull,
+    objects,
     meta: {
-      innerBlocks,
+      freeBlocks,
     },
   }
 }
-function getBlockSize(block: BlockGeneratorResult) {
-  const bounding = getBlockBounding(block)
-  if (!bounding) {
-    return {
-      x: 0,
-      y: 0,
-    }
-  }
-  if (block.objects.length === 1) {
-    return {
-      x: 1,
-      y: 1,
-    }
-  }
+const defaultGenerateRoomConfig = {
+  sizeFrom: 10,
+  sizeTo: 20,
+}
+function generateRoom(freeBlocks: BlockGeneratorObject[], config = defaultGenerateRoomConfig) {
+  const coords = freeBlocks[getRandom(freeBlocks.length - 1)]
+  const { sizeFrom, sizeTo } = config
+  const size = getRandom(sizeTo, sizeFrom)
+  const rect: Coords[] = getRectCoords(coords, Math.round(size / 2))
+  const roomWallsCoords: Coords[] = rect.filter((c) => freeBlocks.findIndex((b) => b.x === c.x && b.y === c.y) >= 0)
+  const roomWalls: BlockGeneratorObject[] = roomWallsCoords.map((c) => ({
+    ...c,
+    type: 'wall',
+    id: nanoid(),
+  }))
+
+  const bounding = getBlockBounding(rect)
+  const { outerBlocks, innerBlocks } = bounding
+    ? freeBlocks.reduce<{ innerBlocks: BlockGeneratorObject[]; outerBlocks: BlockGeneratorObject[] }>(
+        (acc, freeBlock) => {
+          const isInside = isInsideRect(bounding, freeBlock)
+          if (isInside) {
+            return {
+              innerBlocks: [...acc.innerBlocks, freeBlock],
+              outerBlocks: acc.outerBlocks,
+            }
+          }
+          return {
+            innerBlocks: acc.innerBlocks,
+            outerBlocks: [...acc.outerBlocks, freeBlock],
+          }
+        },
+        { innerBlocks: [], outerBlocks: [] }
+      )
+    : { innerBlocks: [], outerBlocks: freeBlocks }
 
   return {
-    x: bounding.xMax - bounding.xMin,
-    y: bounding.yMax - bounding.yMin,
+    x: coords.x,
+    y: coords.y,
+    size,
+    walls: roomWalls,
+    outerBlocks,
+    innerBlocks,
   }
 }
-function getBlockBounding(block: BlockGeneratorResult) {
-  if (block.objects.length === 0) {
+function isInsideRect(rect: Bounding, point: Coords) {
+  if (point.x < rect.xMin || point.x > rect.xMax) {
+    return false
+  }
+  if (point.y < rect.yMin || point.y > rect.yMax) {
+    return false
+  }
+  return true
+}
+function getRectCoords(center: Coords, radius: number) {
+  const rect: Coords[] = []
+  forCoords(center.x - radius, center.y - radius, center.x + radius, center.y + radius, (x, y) => {
+    if (
+      x === center.x - radius ||
+      x === center.x + radius - 1 ||
+      y === center.y - radius ||
+      y === center.y + radius - 1
+    ) {
+      rect.push({ x, y })
+    }
+  })
+  return rect
+}
+// function getBlockSize(coords: Coords[]) {
+//   const bounding = getBlockBounding(coords)
+//   if (!bounding) {
+//     return {
+//       x: 0,
+//       y: 0,
+//     }
+//   }
+//   if (coords.length === 1) {
+//     return {
+//       x: 1,
+//       y: 1,
+//     }
+//   }
+
+//   return {
+//     x: bounding.xMax - bounding.xMin,
+//     y: bounding.yMax - bounding.yMin,
+//   }
+// }
+type Bounding = {
+  xMin: number
+  yMin: number
+  xMax: number
+  yMax: number
+}
+function getBlockBounding(coords: Coords[]) {
+  if (coords.length === 0) {
     return null
   }
-  const { x, y } = block.objects[0]
-  const borders = block.objects.reduce<{ xMin: number; yMin: number; xMax: number; yMax: number }>(
+  const { x, y } = coords[0]
+  const borders = coords.reduce<{ xMin: number; yMin: number; xMax: number; yMax: number }>(
     (acc, item) => {
       return {
         xMin: Math.min(item.x, acc.xMin),
@@ -108,7 +193,7 @@ function getBlockBounding(block: BlockGeneratorResult) {
 }
 function getInnerBlocks(block: BlockGeneratorResult) {
   const objectsByY = groupBy('y', block.objects)
-  const bounding = getBlockBounding(block)
+  const bounding = getBlockBounding(block.objects)
 
   if (!bounding) {
     return []
@@ -125,6 +210,13 @@ function getInnerBlocks(block: BlockGeneratorResult) {
   }
 
   return array
+}
+function forCoords(xFrom: number, yFrom: number, xTo: number, yTo: number, cb: (x: number, y: number) => void) {
+  for (let x = xFrom; x < xTo; x++) {
+    for (let y = yFrom; y < yTo; y++) {
+      cb(x, y)
+    }
+  }
 }
 // It works only for closed hull and without holes
 function isInner(object: Coords, coordsArray: Coords[]) {

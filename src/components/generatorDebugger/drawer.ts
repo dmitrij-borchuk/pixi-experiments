@@ -73,6 +73,9 @@ export class Drawer extends Movable {
     // if (item.render) {
     //   item.render(ctx, this.scale, this.mapOffset)
     // } else {
+    if (!item2color[item.type]) {
+      return
+    }
     ctx.fillStyle = item2color[item.type]
     ctx.fillRect(x * scale + this.offset.x, y * scale + this.offset.y, scale, scale)
     // }

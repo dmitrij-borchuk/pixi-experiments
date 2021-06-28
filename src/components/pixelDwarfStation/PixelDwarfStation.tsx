@@ -1,7 +1,6 @@
-import { nanoid } from 'nanoid'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { generateSpaceStation } from '../../utils/stationGenerator'
-import { Game, GameState } from './game'
+import { Game } from './game'
 import { LogItem } from './logItem'
 
 export const PixelDwarfStation = () => {
@@ -52,7 +51,7 @@ export const PixelDwarfStation = () => {
     // }
     // console.log('=-= generated', generated)
     // setNoise(generated)
-  }, [noiseBorder])
+  }, [])
 
   // const parseNoise = useCallback(
   //   (n: number) => {
