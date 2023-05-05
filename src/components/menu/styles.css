@@ -1,0 +1,33 @@
+.drawer {
+  padding: 20px;
+}
+.hamburgerMenu {
+  height: 32px;
+  width: 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.hamburgerMenu .line {
+  height: 6px;
+  width: 100%;
+  background-color: black;
+}
+.pointer {
+  cursor: pointer;
+}
+
+.panel {
+  position: absolute;
+  background: white;
+  padding: 20px;
+  top: 0;
+  left: 0;
+  height: 100%;
+  transform: translateX(-110%);
+  transition: transform 0.3s ease-in-out;
+  box-shadow: 5px 5px 15px 5px rgba(0, 0, 0, 0.26);
+}
+.panel.opened {
+  transform: translateX(0);
+}

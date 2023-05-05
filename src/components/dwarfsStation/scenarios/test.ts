@@ -33,24 +33,23 @@ export async function run(scene: BaseScene) {
   await showDialog('You won')
 }
 
-
 const defaultState = {
   init: false,
   intro: false,
 }
-class Scenario {
+export class Scenario {
   private state = defaultState
   public async run(scene: BaseScene, state: typeof defaultState) {
     const { showDialog, showMessage, queryObject, wait } = initScenarioTools(scene)
-  
+
     await launchScene(scene)
     const world = generateWorld()
     scene.applyWorld(world)
-  
+
     await showDialog('Introduction')
-  
+
     showMessage('Build solar panel')
-  
+
     const solarPanelQuery = () => queryObject('walls', 'solarPanel')
     await wait(solarPanelQuery, 'objectBuilt.walls')
     // Solar panel is build
@@ -58,9 +57,8 @@ class Scenario {
     showMessage('Build Autolathe')
     const autolatheQuery = () => queryObject('walls', 'autolathe')
     await wait(autolatheQuery, 'objectBuilt.walls')
-  
-    await showDialog('You won')
 
+    await showDialog('You won')
   }
   public getState() {
     return this.state

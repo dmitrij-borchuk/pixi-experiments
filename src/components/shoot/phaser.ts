@@ -208,7 +208,8 @@ class RoomScene extends Phaser.Scene {
     this.hp2 = this.add.image(-280, -250, 'life').setScrollFactor(0, 0)
     this.hp3 = this.add.image(-210, -250, 'life').setScrollFactor(0, 0)
 
-    this.scoreText = this.add.text(16, -250, 'score: 0', { fontSize: '32px', fill: '#fff' }).setScrollFactor(0, 0)
+    this.scoreText = this.add.text(16, -250, 'score: 0', { fontSize: '32px' }).setScrollFactor(0, 0)
+    // this.scoreText = this.add.text(16, -250, 'score: 0', { fontSize: '32px', fill: '#fff' }).setScrollFactor(0, 0)
 
     this.player
       .setDisplaySize(tileSize * 0.9, tileSize * 0.9)

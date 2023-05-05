@@ -258,7 +258,8 @@ class RoomScene extends Phaser.Scene {
     this.hp3 = this.add.image(-210, -250, 'life').setScrollFactor(0, 0)
     this.hp3.depth = 90
 
-    this.scoreText = this.add.text(16, -250, 'score: 0', { fontSize: '32px', fill: '#fff' }).setScrollFactor(0, 0)
+    this.scoreText = this.add.text(16, -250, 'score: 0', { fontSize: '32px' }).setScrollFactor(0, 0)
+    // this.scoreText = this.add.text(16, -250, 'score: 0', { fontSize: '32px', fill: '#fff' }).setScrollFactor(0, 0)
 
     this.reticle.setDisplaySize(25, 25).setCollideWorldBounds(true)
     this.hp1.setDisplaySize(50, 50)
