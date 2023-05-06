@@ -24,6 +24,7 @@ const config = {
 export const RoomSurvival = () => {
   const [state, setState] = useState<GameState>()
   const [tick, setTick] = useState(0)
+  console.log('=-= 🚀 ~ RoomSurvival ~ tick:', tick)
   const [game, setGame] = useState<Game>()
   const onStateChanged = useCallback((state: GameState) => {
     console.log('=-=', state)

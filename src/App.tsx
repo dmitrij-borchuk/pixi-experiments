@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useState } from 'react'
 import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom'
 import { Home } from './components/home/Home'
 import { Test } from './components/test/Text'
@@ -8,6 +8,7 @@ import { MoveInTheRoom } from './components/moveInTheRoom/MoveInTheRoom'
 import { Shoot } from './components/shoot/Shoot'
 import { Defend } from './components/defend/Defend'
 import { Station } from './components/station/Station'
+import { Station as BuildStation } from './experiments/station/app'
 import { Survival } from './components/shipSurvival/Survival'
 import { DwarfsStation } from './components/dwarfsStation'
 import { RotTest } from './components/rotTest'
@@ -19,10 +20,18 @@ import { RoomSurvival } from './components/roomSurvival'
 // TODO: add code generation
 
 export default function App() {
+  const [showMenu, setShowMenu] = useState(false)
+  const toggleMenu = useCallback(() => {
+    setShowMenu((prev) => !prev)
+  }, [])
+
   return (
     <Router>
       <div style={{ display: 'flex' }}>
-        <header>
+        <button onClick={toggleMenu} style={{ position: 'fixed' }}>
+          Menu
+        </button>
+        <header style={{ display: showMenu ? 'block' : 'none' }}>
           <nav>
             <ul>
               <li>
@@ -48,6 +57,9 @@ export default function App() {
               </li>
               <li>
                 <Link to="/station">Space station</Link>
+              </li>
+              <li>
+                <Link to="/build">buildStation</Link>
               </li>
               <li>
                 <Link to="/survival">Survival</Link>
@@ -95,6 +107,9 @@ export default function App() {
             </Route>
             <Route path="/station">
               <Station />
+            </Route>
+            <Route path="/build">
+              <BuildStation />
             </Route>
             <Route path="/survival">
               <Survival />
