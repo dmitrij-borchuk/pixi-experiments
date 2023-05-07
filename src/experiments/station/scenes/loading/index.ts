@@ -1,6 +1,8 @@
 import { Scene } from 'phaser'
 import player from '../../assets/sprites/player10.png'
 import wall from '../../assets/sprites/wall.png'
+import door from '../../assets/sprites/door.png'
+import doorOpen from '../../assets/sprites/doorOpen.png'
 
 export class LoadingScene extends Scene {
   constructor() {
@@ -16,5 +18,7 @@ export class LoadingScene extends Scene {
   preload(): void {
     this.textures.addBase64('player', player)
     this.textures.addBase64('wall', wall)
+    this.textures.addBase64('door', door)
+    this.textures.addBase64('doorOpen', doorOpen)
   }
 }

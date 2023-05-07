@@ -1,6 +1,9 @@
 import { GameObjects, Scene } from 'phaser'
 import { Player } from '../../objects/Player'
 import { TILE_SIZE } from '../../config'
+import { Door } from '../../objects/Door'
+import { Gas } from '../../objects/Gas'
+import { Wall } from '../../objects/Wall'
 
 export class Main extends Scene {
   private player!: GameObjects.Sprite
@@ -24,24 +27,43 @@ export class Main extends Scene {
     )
   }
   onUseTool(x: number, y: number) {
-    if (this.tool === 'wall') {
-      this.createWall(x, y)
+    if (this.tool) {
+      this.createItem(this.tool, x, y)
     }
   }
-  createWall(x: number, y: number) {
-    const wall = this.add.image(x, y, 'wall')
-    wall.setDisplaySize(TILE_SIZE, TILE_SIZE)
-    this.objects.push(wall)
+  createItem(type: string, x: number, y: number, config?: any) {
+    console.log('=-= 🚀 ~ Main ~ createItem ~ type:', type)
+    // TODO: switch
+    if (type === 'Wall') {
+      const wall = new Wall(this, x, y)
+      this.addBlocking(x, y)
+      this.objects.push(wall)
+    } else if (type === 'Door') {
+      const door = new Door(this, x, y)
+      this.addBlocking(x, y)
+      this.objects.push(door)
+    } else if (type === 'Gas') {
+      this.objects.push(
+        new Gas(this, x, y, {
+          // TODO: get from loading
+          volume: 100,
+        })
+      )
+    } else {
+      console.error('Unknown type', type)
+    }
+  }
+  addBlocking(x: number, y: number) {
     this.blockingMap[x / TILE_SIZE] = this.blockingMap[x / TILE_SIZE] || []
     this.blockingMap[x / TILE_SIZE][y / TILE_SIZE] = true
-    return wall
   }
   update(d: number): void {
-    // this.cameras.main.x
-    // console.log('=-= 🚀 ~ Main ~ update ~ this.cameras.main.x:', this.cameras.main.worldView.x)
     this.player?.update(d)
+    // TODO: optimize
+    this.objects.forEach((o) => o.update(d))
   }
   getState() {
+    // TODO: Save state
     return {
       player: {
         x: this.player.x,
@@ -50,6 +72,7 @@ export class Main extends Scene {
       objects: this.objects.map((o) => ({
         x: o.x,
         y: o.y,
+        type: o.constructor.name,
       })),
     }
   }
@@ -58,7 +81,7 @@ export class Main extends Scene {
     this.player.x = data.player.x
     this.player.y = data.player.y
     data.objects.forEach((o: any) => {
-      this.createWall(o.x, o.y)
+      this.createItem(o.type, o.x, o.y)
     })
   }
   setTool(tool: string) {

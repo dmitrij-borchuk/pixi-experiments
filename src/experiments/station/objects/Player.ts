@@ -1,4 +1,4 @@
-import { GameObjects, Scene } from 'phaser'
+import { GameObjects } from 'phaser'
 import { TILE_SIZE } from '../config'
 import { Main } from '../scenes'
 
@@ -50,8 +50,6 @@ export class Player extends GameObjects.Sprite {
       return
     }
 
-    console.log('=-= 🚀 ~ Player ~ update ~ scene.blockingMap:', scene.blockingMap)
-    console.log('=-= 🚀 ~ Player ~ update ~ this:', newX / TILE_SIZE, newY / TILE_SIZE)
     this.x = newX
     this.y = newY
     this.lastMove = d
