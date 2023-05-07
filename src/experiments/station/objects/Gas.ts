@@ -2,10 +2,13 @@ import { GameObjects, Scene } from 'phaser'
 import { TILE_SIZE } from '../config'
 import { Main } from '../scenes'
 import { getTileFromCoords } from '../mapUtils'
-import { getRandomFromArray } from '../mathUtils'
+import { getRandomFromArray, shuffleArray } from '../mathUtils'
 
-const minAlpha = 0
-const maxAlpha = 0.5
+const minAlpha = 0.2
+const maxAlpha = 1
+const normalVolume = 2500
+const minVolume = 1
+const gap = 1
 export class Gas extends GameObjects.Container {
   step = 300
   lastStep = 0
@@ -35,7 +38,7 @@ export class Gas extends GameObjects.Container {
     }
     const scene = this.scene as Main
 
-    if (this.volume < 0.1) {
+    if (this.volume < minVolume) {
       scene.objects.splice(scene.objects.indexOf(this), 1)
       this.destroy()
       return
@@ -57,15 +60,23 @@ export class Gas extends GameObjects.Container {
       .map(([x, y]) => {
         return this.getGasAtPoint(x * TILE_SIZE, y * TILE_SIZE)
       })
-    const target = getRandomFromArray(possibleTargets)
-    if (!target.item) {
-      scene.objects.push(new Gas(scene, target.x, target.y, { volume: this.volume / 2 }))
-      this.volume = this.volume / 2
-    } else if (target.item.volume < this.volume) {
-      const v = (this.volume - target.item.volume) / 2
-      target.item.volume = target.item.volume + v
-      this.volume = this.volume - v
-    }
+
+    shuffleArray(possibleTargets).some((target) => {
+      if (!target.item) {
+        scene.objects.push(new Gas(scene, target.x, target.y, { volume: this.volume / 2 }))
+        this.volume = this.volume / 2
+
+        return true
+      } else if (target.item.volume + gap < this.volume) {
+        const v = (this.volume - target.item.volume) / 2
+        target.item.volume = target.item.volume + v
+        this.volume = this.volume - v
+        return true
+      }
+
+      return false
+    })
+    // const target = getRandomFromArray(possibleTargets)
     this.lastStep = d
   }
 
@@ -99,5 +110,5 @@ type GasConfig = {
 }
 
 function calcAlpha(volume: number) {
-  return ((maxAlpha - minAlpha) / 100) * volume + minAlpha
+  return ((maxAlpha - minAlpha) / normalVolume) * volume + minAlpha
 }

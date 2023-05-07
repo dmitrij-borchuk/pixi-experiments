@@ -4,6 +4,7 @@ import { TILE_SIZE } from '../../config'
 import { Door } from '../../objects/Door'
 import { Gas } from '../../objects/Gas'
 import { Wall } from '../../objects/Wall'
+import { getTileFromCoords } from '../../mapUtils'
 
 export class Main extends Scene {
   private player!: GameObjects.Sprite
@@ -46,9 +47,15 @@ export class Main extends Scene {
       this.objects.push(
         new Gas(this, x, y, {
           // TODO: get from loading
-          volume: 100,
+          volume: 2500,
         })
       )
+    } else if (type === 'clear') {
+      const items = this.getItemsAtPoint(x, y)
+      items.forEach((i) => {
+        this.objects.splice(this.objects.indexOf(i), 1)
+        i.destroy()
+      })
     } else {
       console.error('Unknown type', type)
     }
@@ -86,5 +93,31 @@ export class Main extends Scene {
   }
   setTool(tool: string) {
     this.tool = tool
+  }
+
+  getGasAtPoint(x: number, y: number) {
+    const tileCoords = getTileFromCoords(x, y)
+    const scene = this
+    for (let i = 0; i < scene.objects.length; i++) {
+      const element = scene.objects[i]
+      const objectTile = getTileFromCoords(element.x, element.y)
+      const isSameTile = objectTile.x === tileCoords.x && objectTile.y === tileCoords.y
+      const isGas = element instanceof Gas
+      if (isSameTile && isGas) {
+        return element
+      }
+    }
+
+    return null
+  }
+  getItemsAtPoint(x: number, y: number) {
+    const tileCoords = getTileFromCoords(x, y)
+    const scene = this
+    return scene.objects.filter((o) => {
+      const objectTile = getTileFromCoords(o.x, o.y)
+      const isSameTile = objectTile.x === tileCoords.x && objectTile.y === tileCoords.y
+
+      return isSameTile
+    })
   }
 }

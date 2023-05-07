@@ -29,6 +29,7 @@ export const Station = () => {
         <button onClick={() => game.load()}>Load</button>
         <select onChange={selectTool}>
           <option value="">----</option>
+          <option value="clear">Clear</option>
           <option value="Wall">Wall</option>
           <option value="Door">Door</option>
           <option value="Gas">Oxygen</option>
