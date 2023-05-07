@@ -2,7 +2,6 @@ import { GameObjects } from 'phaser'
 import { TILE_SIZE } from '../config'
 import { Main } from '../scenes'
 
-const gasCanisterVolume = 2500
 // TODO: open helmet when oxygen is present
 export class Player extends GameObjects.Sprite {
   private keyW: Phaser.Input.Keyboard.Key
@@ -11,6 +10,7 @@ export class Player extends GameObjects.Sprite {
   private keyD: Phaser.Input.Keyboard.Key
   private lastMove = 0
   private moveDelay = 300
+  gasCanisterVolume = 2500
   gasCanister = 2500
   airPerBreath = 1
   breathingFrequency = 2000
@@ -58,12 +58,13 @@ export class Player extends GameObjects.Sprite {
     this.hp = this.hp - v
 
     if (this.hp <= 0) {
-      console.log('Game over')
       this.hp = 0
+      const scene = this.scene as Main
+      scene.onDeath()
     }
   }
   private refileOxygen() {
-    if (this.gasCanister >= gasCanisterVolume) {
+    if (this.gasCanister >= this.gasCanisterVolume) {
       return
     }
     const scene = this.scene as Main
@@ -71,8 +72,9 @@ export class Player extends GameObjects.Sprite {
     if (!gas) {
       return
     }
+    scene.uiChanged()
     const refileSpeed = 1
-    const volume = Math.min(refileSpeed, gas.volume, gasCanisterVolume - this.gasCanister)
+    const volume = Math.min(refileSpeed, gas.volume, this.gasCanisterVolume - this.gasCanister)
     this.gasCanister = this.gasCanister + volume
   }
   private breath() {
@@ -85,6 +87,8 @@ export class Player extends GameObjects.Sprite {
         // TODO: add effects
         this.damage(10)
       }
+      scene.uiChanged()
+
       return
     }
     const volume = Math.min(this.airPerBreath, gas.volume)
@@ -92,6 +96,7 @@ export class Player extends GameObjects.Sprite {
     if (this.airPerBreath > volume) {
       this.damage(10)
     }
+    scene.uiChanged()
   }
   move(d: number, xOffset: number, yOffset: number) {
     const scene = this.scene as Main

@@ -1,4 +1,4 @@
-import { GameObjects, Scene } from 'phaser'
+import { Scene } from 'phaser'
 import { Player } from '../../objects/Player'
 import { TILE_SIZE } from '../../config'
 import { Door } from '../../objects/Door'
@@ -7,7 +7,7 @@ import { Wall } from '../../objects/Wall'
 import { getTileFromCoords } from '../../mapUtils'
 
 export class Main extends Scene {
-  private player!: GameObjects.Sprite
+  private player!: Player
   public blockingMap: boolean[][] = []
   public tool: string | null = null
   constructor() {
@@ -118,6 +118,22 @@ export class Main extends Scene {
       const isSameTile = objectTile.x === tileCoords.x && objectTile.y === tileCoords.y
 
       return isSameTile
+    })
+  }
+
+  onDeath() {
+    console.log('=========')
+    console.log('Game over')
+    console.log('=========')
+
+    this.scene.pause()
+    this.game.events.emit('death')
+  }
+
+  uiChanged() {
+    this.game.events.emit('ui-change', {
+      hp: this.player.hp / 100,
+      oxygen: this.player.gasCanister / this.player.gasCanisterVolume,
     })
   }
 }

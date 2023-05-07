@@ -65,7 +65,10 @@ export function init() {
       const state = localStorage.getItem('build_save')
       if (state) {
         const mainScene = game.scene.getScene('main') as Main
-        mainScene.setState(JSON.parse(state))
+        mainScene.scene.restart()
+        setTimeout(() => {
+          mainScene.setState(JSON.parse(state))
+        }, 100)
       }
     },
   }

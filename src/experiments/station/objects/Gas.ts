@@ -2,7 +2,7 @@ import { GameObjects, Scene } from 'phaser'
 import { TILE_SIZE } from '../config'
 import { Main } from '../scenes'
 import { getTileFromCoords } from '../mapUtils'
-import { getRandomFromArray, shuffleArray } from '../mathUtils'
+import { shuffleArray } from '../mathUtils'
 
 const minAlpha = 0.2
 const maxAlpha = 1
