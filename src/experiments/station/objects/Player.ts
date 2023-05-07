@@ -2,6 +2,8 @@ import { GameObjects } from 'phaser'
 import { TILE_SIZE } from '../config'
 import { Main } from '../scenes'
 
+const gasCanisterVolume = 2500
+// TODO: open helmet when oxygen is present
 export class Player extends GameObjects.Sprite {
   private keyW: Phaser.Input.Keyboard.Key
   private keyA: Phaser.Input.Keyboard.Key
@@ -9,6 +11,11 @@ export class Player extends GameObjects.Sprite {
   private keyD: Phaser.Input.Keyboard.Key
   private lastMove = 0
   private moveDelay = 300
+  gasCanister = 2500
+  airPerBreath = 1
+  breathingFrequency = 2000
+  hp = 100
+  lastBreath = 0
 
   constructor(scene: Main, x: number, y: number) {
     super(scene, x, y, 'player')
@@ -26,6 +33,11 @@ export class Player extends GameObjects.Sprite {
     this.scene.cameras.main.setZoom(2)
   }
   update(d: number) {
+    this.refileOxygen()
+    if (this.lastBreath + this.breathingFrequency < d) {
+      this.breath()
+      this.lastBreath = d
+    }
     if (this.lastMove + this.moveDelay > d) {
       return
     }
@@ -40,6 +52,45 @@ export class Player extends GameObjects.Sprite {
     }
     if (this.keyD?.isDown) {
       this.move(d, 1, 0)
+    }
+  }
+  damage(v: number) {
+    this.hp = this.hp - v
+
+    if (this.hp <= 0) {
+      console.log('Game over')
+      this.hp = 0
+    }
+  }
+  private refileOxygen() {
+    if (this.gasCanister >= gasCanisterVolume) {
+      return
+    }
+    const scene = this.scene as Main
+    const gas = scene.getGasAtPoint(this.x, this.y)
+    if (!gas) {
+      return
+    }
+    const refileSpeed = 1
+    const volume = Math.min(refileSpeed, gas.volume, gasCanisterVolume - this.gasCanister)
+    this.gasCanister = this.gasCanister + volume
+  }
+  private breath() {
+    const scene = this.scene as Main
+    const gas = scene.getGasAtPoint(this.x, this.y)
+    if (!gas) {
+      const volume = Math.min(this.airPerBreath, this.gasCanister)
+      this.gasCanister = this.gasCanister - volume
+      if (this.airPerBreath > volume) {
+        // TODO: add effects
+        this.damage(10)
+      }
+      return
+    }
+    const volume = Math.min(this.airPerBreath, gas.volume)
+    gas.volume = gas.volume - volume
+    if (this.airPerBreath > volume) {
+      this.damage(10)
     }
   }
   move(d: number, xOffset: number, yOffset: number) {
